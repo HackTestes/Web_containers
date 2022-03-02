@@ -1,2 +1,2 @@
-./servidor_nodejs/server/apps/**
-./servidor_nodejs/node_modules/**
+/servidor_nodejs/server/apps/**
+/servidor_nodejs/node_modules/**
