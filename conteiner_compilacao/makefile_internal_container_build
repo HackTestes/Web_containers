@@ -1,7 +1,8 @@
-CC = g++
-ROOT_PATH = /container
-BIN_PATH = $(ROOT_PATH)/bin
-SRC_PATH = $(ROOT_PATH)/src
+	CC = g++
+ROOT_PATH = /container/tmpfs
+APP_PATH = $(ROOT_PATH)/app
+BIN_PATH = /container/bin
+SRC_PATH = $(ROOT_PATH)/app_source/src
 
 CPP = $(wildcard $(SRC_PATH)/*.cpp)
 OBJ = $(CPP:.cpp=.o)
@@ -11,9 +12,3 @@ $(SRC_PATH)/%.o: $(SRC_PATH)/%.cpp
 
 $(BIN_PATH)/AppExecutable: $(OBJ)
 	$(CC) -o $@ $^ -static
-	rm -f $(SRC_PATH)/*.o
-
-.PHONY: clean
-
-clean:
-	rm -f *.o

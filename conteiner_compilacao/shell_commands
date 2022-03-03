@@ -1,3 +1,3 @@
 podman build -t compilation_container -f ./compilation_container.dockerfile 
 
-podman run --rm -ti -v ./test_app:/container/src -v ./bin_exit:/container/Bin compilation_container
+podman run --rm -ti -v ./test_app:/container/src -v ./bin_exit:/container/bin compilation_container

@@ -71,33 +71,6 @@ app.post('/RegisterApp', async (req, res) =>
     console.log( req.body, app_name, req.body.app.origin_url.split('/').pop() );
 });
 
-// Executa um aplicativo Sync
-app.post('/ExecuteSync/:app_name', (req, res) =>
-{
-    // Input validation
-    if( security_settings.safe_characters.test(req.params.app_name) )
-    {
-
-        let needs_build = false;
-        // Build if it doesn't exist
-        // code...
-        files = fs.readdirSync("./apps/Test_app/bin");
-
-
-        if(files.length == 0)
-        {
-            console.log( child_process.execFileSync('podman', ['run', '--rm', '-v', `./apps/Test_app/src:/container/src`, '-v', `./apps/Test_app/bin:/container/bin`, 'compilation_container']) );
-        }
-
-        // Execution
-        res.send( child_process.execFileSync('podman', ['run', '--rm', '--read-only', '-v', `./apps/Test_app/bin:/app_container/:ro`, 'app_container']).toString() );
-    }
-
-    else
-    {
-        res.send("Invalid input\n");
-    }
-});
 
 // Executa um aplicativo
 app.post('/Execute/:app_name', async (req, res) =>
@@ -106,18 +79,6 @@ app.post('/Execute/:app_name', async (req, res) =>
     console.log(`${req.params.app_name} : ${security_settings.safe_characters.test(req.params.app_name)}`);
     if( security_settings.safe_characters.test(req.params.app_name) )
     {
-
-        // Build if it doesn't exist
-        try
-        {
-            let source_files = await fs.promises.readdir("./apps/Test_app/application_source");
-        }
-        catch(error)
-        {
-            let { stdout, stderr } = await ExecFileAsync('unzip', ['./apps/Test_app/Test_app.zip', '-d', `./apps/Test_app/application_source`]);
-            console.log(stdout, stderr);
-        }
-
         try
         {
             let files = await fs.promises.readdir("./apps/Test_app/bin");
@@ -125,15 +86,17 @@ app.post('/Execute/:app_name', async (req, res) =>
 
             if(files.length == 0)
             {
-                //console.log("Building");
-                let { stdout, stderr } = await ExecFileAsync('podman', ['run', '--rm', '-v', `./apps/Test_app/application_source/src:/container/src`, '-v', `./apps/Test_app/bin:/container/bin`, 'compilation_container']);
-                console.log(stdout, stderr);
+                // all file are build in the tmpfs folder and only the binary is stored on the host
+                // tmpfs limit to avoid zip bombs
+                let { stdout, stderr } = await ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/Test_app/:/container/tmpfs/app`, '-v', `./apps/Test_app/bin:/container/bin`, 'compilation_container']);
+                console.log(stdout);
             }
 
             // Execution
             let { stdout, stderr } = await ExecFileAsync('podman', ['run', '--rm', '--read-only', '-v', `./apps/Test_app/bin:/app_container/:ro`, 'app_container']);
             res.send(stdout);
         }
+
         catch(error)
         {
             if(error.code == 125 | error.code == 'ENOENT')
@@ -167,7 +130,7 @@ app.get('/search/:table_name/:column_name/:column_value', (req, res) =>
 });
 
 
-// Insere uma configuração
+// Insere uma configuração - POSSIVELMENTE NÃO TERÁ NO FINAL (FORO DO ESCOPO?)
 app.post('/InsertConfig', (req, res) =>
 {
 
