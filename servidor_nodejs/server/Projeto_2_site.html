@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+        <script src="Projeto_2_site.js" defer></script>
+        <link rel="stylesheet" href="Projeto_2_site.css">
+        <title>Projeto 2</title>
+    </head>
+
+    <body>
+
+        <!-- Alguns valores já estão inseridos para facilitar o uso e testes (value=<valor> ou checked)-->
+
+        <div class="container" id="input_queries">
+            <h1>Pesquisar</h1>
+
+            <label for="Search_App"> Nome* </label><br>
+            <input type="text" name="Search_App" id="Search_App" value='*'><br>
+
+            <br>
+
+            <button id="SearchBtn" >Pesquisar</button>
+
+
+            <h1>Inserir Apps</h1>
+
+            <h3>Informações do desenvolvedor</h3>
+            <label for="Insert_App_Dev_Name"> Nome* </label><br>
+            <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
+
+            <label for="Insert_App_Dev_Home_Page_URL"> Home Page* </label><br>
+            <input type="text" name="Insert_App_Dev_Home_Page_URL" id="Insert_App_Dev_Home_Page_URL" value='http://127.0.0.1:3000'><br>
+
+            <h3>Informações do app</h3>
+            <label for="Insert_App_Name"> Nome* </label><br>
+            <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Test_Web_App'><br>
+
+            <label for="Insert_App_Origin_URL"> Link de origem (download)* </label><br>
+            <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/TestAppDownload.zip'><br>
+
+            <label for="Insert_App_Hash"> Hash </label><br>
+            <input type="text" name="Insert_App_Hash" id="Insert_App_Hash" value='????????????????????????????????????????????????????????'><br>
+
+            <label for="Insert_App_Size"> Tamanho* </label><br>
+            <input type="number" name="Insert_App_Size" id="Insert_App_Size" value=50 min=0><br>
+
+            <label for="Insert_App_Needs_Build">Precisa de compilação</label><br>
+            <input type="checkbox" id="Insert_App_Needs_Build" name="Insert_App_Needs_Build"><br>
+
+            <br>
+
+            <button id="RegisterAppBtn" >Registar o app</button>
+
+            <h1>Executar app</h1>
+
+            <label for="Execute_App_Name"> Nome* </label><br>
+            <input type="text" name="Execute_App_Name" id="Execute_App_Name" value='Caio_Test_Web_App'><br> 
+
+            <label for="Execute_App_Flags"> Nome* </label><br>
+            <input type="text" name="Execute_App_Flags" id="Execute_App_Flags" value=''><br>
+
+            <br>
+
+            <button id="ExecuteApp" >Executar Aplicativo</button>
+
+            <h1>Inserir Configurações</h1>
+
+            <input type="checkbox" id="Insert_Config_Privileged" name="Insert_Config_Privileged">
+            <label for="Insert_Config_Privileged">Privilegiado</label><br>
+
+            <input type="checkbox" id="Insert_Config_RO_FS" name="Insert_Config_RO_FS" checked>
+            <label for="Insert_Config_RO_FS">Sistema de arquivos de apenas leitura</label><br>
+
+            <input type="checkbox" id="Insert_Config_Network" name="Insert_Config_Network">
+            <label for="Insert_Config_Network">Acesso à rede</label><br>
+
+            <input type="checkbox" id="Insert_Config_GPU" name="Insert_Config_GPU">
+            <label for="Insert_Config_GPU">Acesso à GPU</label><br>
+
+            <label for="Insert_Config_UID">UID</label><br>
+            <input type="number" id="Insert_Config_UID" name="Insert_Config_UID" min=0 step=1 value=1000><br>
+
+            <label for="Insert_Config_GID">GID</label><br>
+            <input type="number" id="Insert_Config_GID" name="Insert_Config_GID" min=0 step=1 value=1000><br>
+
+            <label for="Insert_Config_Max_Memory">Memória Máxima (RAM)</label><br>
+            <input type="number" id="Insert_Config_Max_Memory" name="Insert_Config_Max_Memory" min=0 step=1 value=2048><br>
+
+            <label for="Insert_Config_Max_Swap_Memory">Memória SWAP Máxima</label><br>
+            <input type="number" id="Insert_Config_Max_Swap_Memory" name="Insert_Config_Max_Swap_Memory" min=0 step=1 value=2048><br>
+
+            <label for="Insert_Config_Label"> Apelido (label) </label><br>
+            <input type="text" name="Insert_Config_Label" id="Insert_Config_Label" value='Test_Config'>
+
+            <br>
+
+            <button id="InsertConfigBtn" >Inserir configuações</button>
+
+
+            <h1>Atualizar dados</h1>
+
+            <input type="radio" id="Update_Table_App" name="Update_Table_Select" value="App" checked>
+            <label for="Update_Table_App">Aplicativo</label><br>
+
+            <input type="radio" id="Update_Table_Developer" name="Update_Table_Select" value="Developer">
+            <label for="Update_Table_Developer">Desenvolvedor</label><br>
+
+            <input type="radio" id="Update_Table_Config" name="Update_Table_Select" value="Config">
+            <label for="Update_Table_Config">Configurações</label><br>
+
+            <label for="Update_Table_Column_Name"> Nome da coluna (diferencia maiúsculas de minúsculas) </label><br>
+            <input type="text" name="Update_Table_Column_Name" id="Update_Table_Column_Name" value='name'><br>
+
+            <label for="Update_Table_Column_Value"> Novo valor </label><br>
+            <input type="text" name="Update_Table_Column_Value" id="Update_Table_Column_Value" value='GIMP Photo Editor'><br>
+
+            <label for="Update_Table_Entry_ID">ID</label><br>
+            <input type="number" id="Update_Table_Entry_ID" name="Update_Table_Entry_ID" min=0 step=1 value=2><br>
+
+            <br>
+
+            <button id="UpdateEntryBtn" >Atualizar dados</button>
+
+            <h1>Deletar Apps, desenvolvedores e configurações</h1>
+
+            <label for="Delete_App"> Nome do app </label><br>
+            <input type="text" name="Delete_App" id="Delete_App" value='Test_app_2'><br>
+
+            <br>
+
+            <button id="DeleteEntryBtn" >Deletar entrada</button>
+
+            <br>
+            <br>
+            <br>
+            <br>
+        </div>
+
+
+        <div class="container" id="results_div">
+            <h1 class="Result">Resposta</h1>
+            <pre class="Result" id="Result"></pre>
+        </div>
+
+    </body>
+</html>
