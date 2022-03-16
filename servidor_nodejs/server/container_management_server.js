@@ -29,6 +29,8 @@ app.use(express.json());
 // Cache de teste
 //let file = fs.readFileSync("./?????");
 
+//ExecFileAsync('chromium', ['--incognito', '--new-window', '--app=https://www.google.com']);
+
 app.get('/TestAPI', (req, res) =>
 {
     res.json

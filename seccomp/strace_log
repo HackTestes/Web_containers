@@ -1,0 +1,45 @@
+execve("/usr/bin/echo", ["echo", "Just an echo"], 0x7fff95f3f218 /* 60 vars */) = 0
+brk(NULL)                               = 0x55d448eed000
+arch_prctl(0x3001 /* ARCH_??? */, 0x7ffec8dd2520) = -1 EINVAL (Invalid argument)
+access("/etc/ld.so.preload", R_OK)      = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=69311, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 69311, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f5b3fa78000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/x86_64-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0000\242\2\0\0\0\0\0"..., 832) = 832
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+pread64(3, "\4\0\0\0 \0\0\0\5\0\0\0GNU\0\2\0\0\300\4\0\0\0\3\0\0\0\0\0\0\0"..., 48, 848) = 48
+pread64(3, "\4\0\0\0\24\0\0\0\3\0\0\0GNU\0\360\374)\26\\\276`\210\300\341\255\360;\0H\373"..., 68, 896) = 68
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=2216272, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5b3fa76000
+pread64(3, "\6\0\0\0\4\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0@\0\0\0\0\0\0\0"..., 784, 64) = 784
+mmap(NULL, 2260560, PROT_READ, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f5b3f84e000
+mprotect(0x7f5b3f876000, 2019328, PROT_NONE) = 0
+mmap(0x7f5b3f876000, 1654784, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x28000) = 0x7f5b3f876000
+mmap(0x7f5b3fa0a000, 360448, PROT_READ, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1bc000) = 0x7f5b3fa0a000
+mmap(0x7f5b3fa63000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x214000) = 0x7f5b3fa63000
+mmap(0x7f5b3fa69000, 52816, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f5b3fa69000
+close(3)                                = 0
+mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f5b3f84c000
+arch_prctl(ARCH_SET_FS, 0x7f5b3fa77600) = 0
+set_tid_address(0x7f5b3fa778d0)         = 9798
+set_robust_list(0x7f5b3fa778e0, 24)     = 0
+mprotect(0x7f5b3fa63000, 16384, PROT_READ) = 0
+mprotect(0x55d4486f1000, 4096, PROT_READ) = 0
+mprotect(0x7f5b3fabc000, 8192, PROT_READ) = 0
+prlimit64(0, RLIMIT_STACK, NULL, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+munmap(0x7f5b3fa78000, 69311)           = 0
+getrandom("\x4a\xb5\x25\x37\x2f\x24\x3f\x29", 8, GRND_NONBLOCK) = 8
+brk(NULL)                               = 0x55d448eed000
+brk(0x55d448f0e000)                     = 0x55d448f0e000
+openat(AT_FDCWD, "/usr/lib/locale/locale-archive", O_RDONLY|O_CLOEXEC) = 3
+newfstatat(3, "", {st_mode=S_IFREG|0644, st_size=5713088, ...}, AT_EMPTY_PATH) = 0
+mmap(NULL, 5713088, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f5b3f2d9000
+close(3)                                = 0
+newfstatat(1, "", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88, 0), ...}, AT_EMPTY_PATH) = 0
+write(1, "Just an echo\n", 13)          = 13
+close(1)                                = 0
+close(2)                                = 0
+exit_group(0)                           = ?
++++ exited with 0 +++
