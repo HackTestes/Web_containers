@@ -1,0 +1,22 @@
+#include <tunables/global>
+
+profile security_transition_executable_profile {
+    #include <abstractions/base>
+
+    "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**" cx -> &restricted_native_web_app,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp r,
+    unix (send, receive),
+
+    capability sys_admin bpf setpcap,
+    /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 r,
+    /usr/lib/x86_64-linux-gnu/libseccomp.so.2.5.1 rm,
+    /usr/lib/** rm,
+    /etc/ld.so.cache r,
+}
+
+profile restricted_native_web_app {
+    #include <abstractions/base>
+
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/** r,
+    unix (send, receive),
+}

@@ -8,8 +8,11 @@ const url = require('url'); // https://stackoverflow.com/questions/15317902/node
 const fs = require('fs');
 const child_process = require('child_process');
 const util = require('util');
+const crypto = require('crypto');
 
 const ExecFileAsync = util.promisify(child_process.execFile);
+const ExecAsync = util.promisify(child_process.exec);
+const SpawnAsync = util.promisify(child_process.spawn);
 
 // https://stackoverflow.com/questions/58642368/how-to-download-a-file-with-nodejs
 
@@ -19,8 +22,17 @@ const ExecFileAsync = util.promisify(child_process.execFile);
 let security_settings = 
 {
     safe_characters : /^[a-zA-Z0-9-_]*$/,
-    search_characters : /^[a-zA-Z0-9-_\*]*$/
+    search_characters : /^[a-zA-Z0-9-_\*]*$/,
+    admin_token: crypto.randomBytes(48).toString('hex')
 };
+
+let app_key = {};
+
+// https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl
+// Shell: openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+//let privateKey  = fs.readFileSync('key.pem', 'utf8');
+//let certificate = fs.readFileSync('cert.pem', 'utf8');
+//let credentials = {key: privateKey, cert: certificate};
 
 const app = express();
 app.use(cors());
@@ -29,19 +41,42 @@ app.use(express.json());
 // Cache de teste
 //let file = fs.readFileSync("./?????");
 
-//ExecFileAsync('chromium', ['--incognito', '--new-window', '--app=https://www.google.com']);
-
-app.get('/TestAPI', (req, res) =>
+app.get(`/Admin/${security_settings.admin_token}/`, (req, res) =>
 {
-    res.json
-    ({
-        Status: "OK"
-        //Req: req
-    });
+    res.sendFile( __dirname + '/website/Projeto_2_site.html' );
+});
 
-    console.log( require('crypto').randomBytes(48).toString('hex') );
+app.get(`/Admin/${security_settings.admin_token}/:website_resource`, (req, res) =>
+{
+    res.sendFile( __dirname + `/website/${req.params.website_resource}` );
+});
 
-    console.log(req, "\n\n", req.ip);
+
+app.post('/TestAPI', (req, res) =>
+{
+    if(app_key[req.body.app_name] == req.body.app_key)
+    {
+        res.json
+        ({
+            Status: "OK"
+            //Req: req
+        });
+
+       // console.log(req, "\n\n", req.ip);
+    }
+    else
+    {
+        res.json
+        ({
+            Status: "Invalid key",
+            Key_recived: req.body.app_key
+            //Req: req
+        });
+
+        console.log(req.body.app_key);
+        console.log(app_key);
+        console.log(app_key[req.body.app_name] == req.body.app_key);
+    }
 });
 
 app.get('/TestAppDownload.zip', async (rew, res) =>
@@ -60,46 +95,68 @@ app.post('/RegisterApp', async (req, res) =>
         'http': http,
         'https': https
     }
+    let app_name;
 
-    // !todo! Add try catch
-
-    let app_name = req.body.developer.name + '_' + req.body.app.name;
-    app_name = app_name.replace(/\/|\\| /g, '_');
-
-    await fs.mkdir(`./apps/${app_name}`, (err) =>
+    try
     {
-        if (err)
+        app_name = req.body.app.name;
+        app_name = app_name.replace(/\/|\\| /g, '_');
+
+        app_key[app_name] = crypto.randomBytes(48).toString('hex');
+
+        await fs.promises.mkdir(`./apps/${app_name}`/*, (err) =>
         {
-            if(err.code == 'EEXIST')
+            if (err)
             {
-                console.log("App already exists");
+                if(err.code == 'EEXIST')
+                {
+                    console.log("App already exists");
+                }
+                else {throw err;}
             }
-            else {throw err;}
+        }*/);
+    }
+    catch(error)
+    {
+        if(error.code == 'EEXIST')
+        {
+            console.log("App already exists");
         }
-    });
+        else
+        {
+            throw error;
+        }
+    }
 
-    await fs.promises.mkdir(`./apps/${app_name}/bin`, (err) => {if (err) {throw err }});
+        try{await fs.promises.mkdir(`./apps/${app_name}/bin`/*, (err) => {if (err) {throw err }}*/);} catch(error) {if(error.code == 'EEXIST'){console.log("Path already exists" + error);}};
 
-    await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body), (err) => { if (err) throw err; });
+        await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body)/*, (err) => { if (err) throw err; }*/);
 
-    await protocol[req.body.app.origin_url.split(':')[0]].get(req.body.app.origin_url, resp => resp.pipe( fs.createWriteStream(`./apps/${app_name}/${ req.body.app.origin_url.split('/').pop() }`) ));
+        await protocol[req.body.app.origin_url.split(':')[0]].get(req.body.app.origin_url, resp => resp.pipe( fs.createWriteStream(`./apps/${app_name}/${ req.body.app.origin_url.split('/').pop() }`) ));
 
     res.json
     ({
         Status: "OK",
-        Req: req.body
+        Req: req.body,
+        App_key: app_key[app_name]
     });
 
     console.log( req.body, app_name, req.body.app.origin_url.split('/').pop() );
 });
 
+// ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
+// ExecFileAsync('podman', ['run', '--rm', '--read-only', '-v', `./apps/${req.body.app_name}/bin:/app_container/:ro`, 'app_container']);
+
+let seccomp_exe = "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp";
+let seccomp_allowed_syscalls = "execve,brk,arch_prctl,access,openat,newfstatat,mmap,close,read,pread64,mprotect,set_tid_address,set_robust_list,prlimit64,munmap,getrandom,write,exit_group,exit,fstat,readlink,uname,access";
+let apparmor_profile = '/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**';
 
 // Executa um aplicativo
 app.post('/Execute/', async (req, res) =>
 {
     // Input validation
     //console.log(`${req.body.app_name} : ${security_settings.safe_characters.test(req.body.app_name)}`);
-    if( security_settings.safe_characters.test(req.body.app_name) )
+    if( security_settings.safe_characters.test(req.body.app_name) && app_key[req.body.app_name] == req.body.app_key )
     {
         try
         {
@@ -114,13 +171,19 @@ app.post('/Execute/', async (req, res) =>
                 //console.log(stdout);
             }
 
+            let app_to_execute = `${__dirname}/apps/${req.body.app_name}/bin/AppExecutable`;
+
+
+
+
             // Execution
-            let { stdout, stderr } = await ExecFileAsync('podman', ['run', '--rm', '--read-only', '-v', `./apps/${req.body.app_name}/bin:/app_container/:ro`, 'app_container']);
+            let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--seccomp-syscalls`, `${seccomp_allowed_syscalls}`, `${app_to_execute}`]);
 
             res.json
             ({
                 Status: 'OK',
                 Stdout : stdout,
+                Stderr: stderr,
                 Request_body: req.body
             });
         }
@@ -148,7 +211,7 @@ app.post('/Execute/', async (req, res) =>
         res.json
         ({
             Status: 'ERROR',
-            Description: error.toString()
+            Description: "Invalid key or app or invalid chracters"
         });
     }
 });
@@ -259,6 +322,13 @@ app.delete('/Delete', (req, res) =>
     }
 });
 
+//let httpsServer = https.createServer(credentials, app);
 
 port_listen = 3000;
-app.listen(port_listen, () => { console.log(`Server: OK \nPort: ${port_listen} \n`) })
+app.listen(port_listen, () =>
+{
+    console.log(`Server: OK \nPort: ${port_listen} \n`);
+    console.log(`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/\n`);
+
+    ExecFileAsync('chromium', ['--incognito', `http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]);
+});

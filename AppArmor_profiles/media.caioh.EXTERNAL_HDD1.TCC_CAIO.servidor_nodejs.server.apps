@@ -1,0 +1,7 @@
+#include <tunables/global>
+
+"/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**" {
+    #include <abstractions/base>
+
+    unix (send, receive),
+}

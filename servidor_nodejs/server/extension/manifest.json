@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Web Linux containers",
+    "description": "An extension that provides an easy interface to control whether the site is allowed or denied to use native apps",
+    "version": "1.0",
+
+    "permissions": ["scripting", "cookies", "webRequest", "notifications", "background"],
+
+    "background":
+    {
+        "service_worker": "background.js"
+    },
+
+    "action":
+    {
+        "default_title": "Click to view a popup",
+        "default_popup": "popup.html",
+        "default_area": "navbar"
+    }
+  }

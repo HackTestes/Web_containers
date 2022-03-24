@@ -63,6 +63,7 @@ document.querySelector("#ExecuteApp").onclick = () =>
     let json_data = 
     {
         "app_name": document.querySelector("#Execute_App_Name").value,
+        "app_key": document.querySelector("#Execute_App_Key").value,
         "flags": document.querySelector("#Execute_App_Flags").value
     }
 

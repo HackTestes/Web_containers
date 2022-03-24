@@ -1,0 +1,14 @@
+#include <tunables/global>
+
+"/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/*" {
+    #include <abstractions/base>
+
+    network,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/** rw,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/** r,
+    /usr/share/zoneinfo-icu/** r,
+    /usr/bin/podman pux,
+    /snap/bin/chromium px,
+    /usr/bin/snap px,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/* px -> security_transition_executable_profile,
+}
