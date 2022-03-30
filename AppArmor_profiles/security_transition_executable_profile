@@ -8,8 +8,6 @@ profile security_transition_executable_profile {
     unix (send, receive),
 
     capability sys_admin bpf setpcap,
-    /usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 r,
-    /usr/lib/x86_64-linux-gnu/libseccomp.so.2.5.1 rm,
     /usr/lib/** rm,
     /etc/ld.so.cache r,
 }

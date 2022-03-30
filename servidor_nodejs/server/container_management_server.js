@@ -27,6 +27,9 @@ let security_settings =
 };
 
 let app_key = {};
+let allowed_apps = {};
+
+// ----------------------------------------------------------------------------------------------------------
 
 // https://stackoverflow.com/questions/10175812/how-to-generate-a-self-signed-ssl-certificate-using-openssl
 // Shell: openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
@@ -172,8 +175,6 @@ app.post('/Execute/', async (req, res) =>
             }
 
             let app_to_execute = `${__dirname}/apps/${req.body.app_name}/bin/AppExecutable`;
-
-
 
 
             // Execution

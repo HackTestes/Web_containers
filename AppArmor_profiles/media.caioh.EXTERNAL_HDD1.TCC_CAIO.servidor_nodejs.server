@@ -9,6 +9,7 @@
     /usr/share/zoneinfo-icu/** r,
     /usr/bin/podman pux,
     /snap/bin/chromium px,
-    /usr/bin/snap px,
+    /usr/bin/snap pux,
     /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/* px -> security_transition_executable_profile,
+    /usr/bin/bwrap px -> security_transition_executable_profile,
 }

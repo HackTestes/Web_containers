@@ -699,8 +699,6 @@ time ./exec_program_seccomp \
 
 */
 
-// Must add gpl!!!!
-
 #define _GNU_SOURCE
 
 #include <seccomp.h> // seccomp
@@ -714,7 +712,14 @@ time ./exec_program_seccomp \
 #include <unistd.h> // exec
 #include <sys/apparmor.h> // apparmor
 #include <sched.h> // unshare
+#include <sys/mount.h> // mount
+#include <sys/wait.h> // wait
 #include <stdlib.h>
+
+#include <sys/prctl.h> // prctl
+#include <linux/securebits.h>
+
+#include <ctype.h> // isdigit()
 
 #include <sys/capability.h> // capability
 
@@ -763,17 +768,53 @@ const cap_value_t cap_list[] =
     CAP_WAKE_ALARM
 };
 
+struct MountCommand
+{
+    char* source;
+    char* target;
+    char* filesystemtype;
+    long mountflags;
+    void* data_options;
+};
+
+int ValidateDigitString(char* string)
+{
+    for(int i = 0; i < strlen(string); ++i)
+    {
+        if( isdigit(string[i]) == false )
+        {
+            return -1; // if error
+        }
+    }
+
+    return 0; // ALL chars are numbers (this also avaluates spaces and ANY other character)
+}
+
 int main(int argc, char *argv[])
 {
     // configuration variables
     bool seccomp_enabled = true;
     bool apparmor_enabled = false;
     char* apparmor_profile;
-    int new_program_index;
+    int new_program_index; // Whats is the position that starts the other program
 
-    int list_size = 100;
+    int syscall_list_size = 100;
     int syscall_count = 0;
-    char** seccomp_syscalls_list = malloc(list_size * sizeof(char*));
+    char** seccomp_syscalls_list = malloc(syscall_list_size * sizeof(char*));
+
+    long mount_count = 0;
+    long mount_commands_list_size = 100;
+    struct MountCommand* mount_list = malloc(mount_commands_list_size * sizeof(struct MountCommand));
+
+    pid_t pid;
+    bool fork_enabled = false;
+
+    bool set_uid = false;
+    bool set_gid = false;
+    char* uid;
+    char* gid;
+    uid_t real_uid;
+    gid_t real_gid;
 
     if(seccomp_syscalls_list == NULL)
     {
@@ -782,6 +823,10 @@ int main(int argc, char *argv[])
     }
 
 // -----------------------------------------------------------------------
+
+// Memory managment
+// Some options receive the pointers from argv DIRECTLY (pointing to the same memory), so using free might deallocate memory from argv itself!!!
+// Only some of the lists are freed
 
     // Argument parsing
     for(int i=0; i < argc; ++i)
@@ -797,10 +842,16 @@ int main(int argc, char *argv[])
                 "sandbox_exec [OPTIONS] PROGRAM_PATH [PROGRAM_ARGS] \n\n"
                 "[OPTIONS]\n"
                 "--help : displays help \n"
+                "--fork : fork before calling the program \n"
+                "--uid NS_UID : set user id in the new namespace (maps to current uid outside of the ns) \n"
+                "--gid NS_GID : set primary group id in the new namespace (maps to current gid outside of the ns) \n"
+                "*--uid_map NS_UID REAL_UID : maps a ns UID to a real UID (privileged user namesapce) \n"
+                "*--gid_map NS_GID REAL_GID : maps a ns GID to a real GID (privileged user namesapce) \n"
                 "--no-seccomp : disable seccomp filters \n"
                 "--seccomp-syscalls <SYSCALLS,...> : list of allowed syscalls separated by ',' \n"
-                //"--no-apparmor : disable custom AppArmor profile (doesn't affect default system's policy)\n"
-                "--apparmor-profile PROFILE : select a custom AppArmor profile \n";
+                "--mount <SRC> <DEST> <FILESYSTEM TYPE> [FLAGS] [OPTS] : mount a filesystem (use 'none' when empty)\n"
+                "--apparmor-profile PROFILE : selects a custom AppArmor profile \n"
+                "\n* - future features, not yet ready\n";
 
                 printf("%s", help_text);
 
@@ -810,6 +861,187 @@ int main(int argc, char *argv[])
             else if(strcmp("--no-seccomp", argv[i]) == 0)
             {
                 seccomp_enabled = false;
+                continue;
+            }
+
+            else if(strcmp("--uid", argv[i]) == 0)
+            {
+                set_uid = true;
+                real_uid = getuid();
+
+                if( ValidateDigitString(argv[i+1]) == 0 )
+                {
+                    uid = argv[i+1];
+                }
+                else
+                {
+                    fprintf(stderr, "%s : %s\n", "Invalid uid", argv[i+1]);
+                    exit(EXIT_FAILURE);
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--gid", argv[i]) == 0)
+            {
+                set_gid = true;
+                real_gid = getgid();
+
+                if( ValidateDigitString(argv[i+1]) == 0 )
+                {
+                    gid = argv[i+1];
+                }
+                else
+                {
+                    fprintf(stderr, "%s : %s\n", "Invalid gid", argv[i+1]);
+                    exit(EXIT_FAILURE);
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--mount", argv[i]) == 0)
+            {
+                ++mount_count;
+                long mount_index = mount_count - 1; // Index starts at 0 in arrays
+
+                // If the list is too small, allocate more memory
+                if(mount_commands_list_size < mount_count)
+                {
+                    mount_commands_list_size += 1;
+                    mount_list = realloc(mount_list, mount_commands_list_size * sizeof(struct MountCommand));
+
+                    //printf("sizeof(struct MountCommand*): %ld \nsizeof(struct MountCommand): %ld \n", sizeof(struct MountCommand*), sizeof(struct MountCommand));
+                    printf("mount_commands_list_size: %ld -- mount_count: %ld \n", mount_commands_list_size, mount_count);
+                }
+
+                (strcmp("none", argv[i + 1]) == 0) ? (mount_list[mount_index].source = "dummy_string") : (mount_list[mount_index].source = argv[i + 1]);
+                (strcmp("none", argv[i + 2]) == 0) ? (mount_list[mount_index].target = NULL) : (mount_list[mount_index].target = argv[i + 2]);
+                (strcmp("none", argv[i + 3]) == 0) ? (mount_list[mount_index].filesystemtype = NULL) : (mount_list[mount_index].filesystemtype = argv[i + 3]);
+                mount_list[mount_index].mountflags = 0; // argv[i + 4]
+                (strcmp("none", argv[i + 5]) == 0) ? (mount_list[mount_index].data_options = NULL) : (mount_list[mount_index].data_options = argv[i + 5]);
+
+                if(strcmp("none", argv[i + 4]) != 0)
+                {
+                    char* mount_flags = argv[i+4];
+                    char* string;
+
+                    // see man mount 2
+                    for(int j=0; (string=strsep(&mount_flags, "|")) != NULL; ++j)
+                    {
+                        if(strcmp("MS_REMOUNT", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_REMOUNT;
+                            continue;
+                        }
+                        else if(strcmp("MS_SHARED", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_SHARED;
+                            continue;
+                        }
+                        else if(strcmp("MS_PRIVATE", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_PRIVATE;
+                            continue;
+                        }
+                        else if(strcmp("MS_SLAVE", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_SLAVE;
+                            continue;
+                        }
+                        else if(strcmp("MS_UNBINDABLE", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_UNBINDABLE;
+                            continue;
+                        }
+                        else if(strcmp("MS_DIRSYNC", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_DIRSYNC;
+                            continue;
+                        }
+                        else if(strcmp("MS_LAZYTIME", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_LAZYTIME;
+                            continue;
+                        }
+                        else if(strcmp("MS_MANDLOCK", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_MANDLOCK;
+                            continue;
+                        }
+                        else if(strcmp("MS_NOATIME", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NOATIME;
+                            continue;
+                        }
+                        else if(strcmp("MS_NODEV", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NODEV;
+                            continue;
+                        }
+                        else if(strcmp("MS_NODIRATIME", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NODIRATIME;
+                            continue;
+                        }
+                        else if(strcmp("MS_NOEXEC", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NOEXEC;
+                            continue;
+                        }
+                        else if(strcmp("MS_NOSUID", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NOSUID;
+                            continue;
+                        }
+                        else if(strcmp("MS_RDONLY", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_RDONLY;
+                            continue;
+                        }
+                        else if(strcmp("MS_REC", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_REC;
+                            continue;
+                        }
+                        else if(strcmp("MS_RELATIME", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_RELATIME;
+                            continue;
+                        }
+                        else if(strcmp("MS_SILENT", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_SILENT;
+                            continue;
+                        }
+                        else if(strcmp("MS_STRICTATIME", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_STRICTATIME;
+                            continue;
+                        }
+                        else if(strcmp("MS_SYNCHRONOUS", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_SYNCHRONOUS;
+                            continue;
+                        }
+                        else if(strcmp("MS_NOSYMFOLLOW", string) == 0)
+                        {
+                            mount_list[mount_index].mountflags |= MS_NOSYMFOLLOW;
+                            continue;
+                        }
+                        else
+                        {
+                            fprintf(stderr, "Invalid mount flag: %s \n", string);
+                            exit(EXIT_FAILURE);
+                        }
+
+                    //free(string);
+                    }
+                }
+
+                i = i + 5;
                 continue;
             }
 
@@ -834,32 +1066,47 @@ int main(int argc, char *argv[])
 
                 ++i;
 
-                for(int i=0; (string=strsep(&seccomp_syscalls, ",")) != NULL; ++i)
+                for(int j=0; (string=strsep(&seccomp_syscalls, ",")) != NULL; ++j)
                 {
                     ++syscall_count;
 
                     // Bigger than list size
-                    if(syscall_count > list_size)
+                    if(syscall_count > syscall_list_size)
                     {
-                        list_size += 50; // Realloc more memory
-                        seccomp_syscalls_list = realloc(seccomp_syscalls_list, list_size * sizeof(char*));
+                        syscall_list_size += 50; // Realloc more memory
+                        seccomp_syscalls_list = realloc(seccomp_syscalls_list, syscall_list_size * sizeof(char*));
                     }
 
-                    seccomp_syscalls_list[i] = string;
+                    seccomp_syscalls_list[j] = string;
                 }
 
                 continue;
             }
 
+            else if(strcmp("--fork", argv[i]) == 0)
+            {
+                fork_enabled = true;
+                continue;
+            }
+
             else
             {
-                fprintf(stderr, "%s", "Invalid option\n");
+                fprintf(stderr, "%s : %s\n", "Invalid option", argv[i]);
                 exit(-1);
             }
         }
 
+        // ALTERNATIVE: use '--' to separate sandbox program from the actual program to run
+        /*
+        else if(strcmp("--", argv[i]) == 0 && i != 0)
+        {
+            new_program_index = i + 1;
+            break;
+        }
+        */
+
         // This is not an option and it is not the first argument[0]
-        // Must be the program to execute (can't insert any other options)
+        // Must be the program to execute (can't insert any other options, only for the new program)
         else if(i != 0)
         {
             new_program_index = i;
@@ -877,7 +1124,7 @@ int main(int argc, char *argv[])
     // Select the correct architecture
     //seccomp_arch_add(ctx, SCMP_ARCH_X86);
 
-    //printf("List size: %d \n", list_size);
+    //printf("List size: %d \n", syscall_list_size);
     for(int i=0; i < syscall_count; ++i)
     {
         //printf("Syscall: %s \n", seccomp_syscalls_list[i]);
@@ -889,7 +1136,7 @@ int main(int argc, char *argv[])
 
         if(error_code < 0)
         {
-            fprintf(stderr, "%s", "Invalid syscall\n");
+            fprintf(stderr, "%s: %s \n", "Invalid syscall", seccomp_syscalls_list[i]);
 
             // Release the seccomp context
             seccomp_release(ctx);
@@ -911,14 +1158,88 @@ int main(int argc, char *argv[])
 
     // man unshare(2)
     // Creates new namespaces with unshare syscall
-    // IMPORTANT: CLONE_NEWUSER grants ALL CAPABILITIES on the new namespace
+    // IMPORTANT: CLONE_NEWUSER grants ALL CAPABILITIES in the new namespace 
     if(unshare(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER) == -1)
     {
         perror("Unshare");
         exit(EXIT_FAILURE);
     }
 
+    // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
+    if(set_uid)
+    {
+        FILE *fp = fopen("/proc/self/uid_map", "w");
+        if (fp != NULL)
+        {
+            char uid_mapping[256];
+            snprintf(uid_mapping, sizeof(uid_mapping), "%s %d 1\n", uid, real_uid);
+
+            fputs(uid_mapping, fp);
+            fclose(fp);
+        }
+        else
+        {
+            perror("Uid mapping error");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
+    if(set_gid)
+    {
+        // Must deny setgroups to be able to use map_gid
+        FILE *fp = fopen("/proc/self/setgroups", "w");
+        if (fp != NULL)
+        {
+            fputs("deny\n", fp);
+            fclose(fp);
+        }
+        else
+        {
+            perror("setgroups error");
+            exit(EXIT_FAILURE);
+        }
+
+        fp = fopen("/proc/self/gid_map", "w");
+        if (fp != NULL)
+        {
+            char gid_mapping[256];
+            snprintf(gid_mapping, sizeof(gid_mapping), "%s %d 1\n", gid, real_gid);
+
+            fputs(gid_mapping, fp);
+            fclose(fp);
+        }
+        else
+        {
+            perror("Gid mapping error");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+
 // -----------------------------------------------------------------------
+
+    for(int i = 0; i < mount_count; ++i)
+    {
+        //printf("fake_mount(%s, %s, %s, %ld, %s)\n", mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, (char*)mount_list[i].data_options);
+        if( mount(mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, mount_list[i].data_options) )
+        {
+            fprintf(stderr, "Mount failed : mount(%s, %s, %s, %ld, %s)\n", mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, (char*)mount_list[i].data_options);
+            perror("Error");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    free(mount_list);
+// -----------------------------------------------------------------------
+
+    // setting the most restrictive secure bits and locking them
+    // see man capabilities 7
+    if( prctl(PR_SET_SECUREBITS, SECBIT_NO_SETUID_FIXUP|SECBIT_NO_SETUID_FIXUP_LOCKED|SECBIT_NOROOT|SECBIT_NOROOT_LOCKED|SECBIT_KEEP_CAPS_LOCKED|SECBIT_NO_CAP_AMBIENT_RAISE|SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) )
+    {
+        perror("Prctl error");
+        exit(EXIT_FAILURE);
+    }
 
     // Drop all ambient capabilities
     if( cap_reset_ambient() == -1 )
@@ -940,36 +1261,63 @@ int main(int argc, char *argv[])
 // -----------------------------------------------------------------------
 
     // Creates an array with arguments for the next program to be executed
-    char** new_args = malloc( (argc - new_program_index) * sizeof(char*) );
+    char** new_args = malloc( (argc - new_program_index + 1) * sizeof(char*) ); // '+1' is for the NULL termited space
     if(new_args == NULL)
     {
         fprintf(stderr, "%s", "Malloc failed\n");
         exit(EXIT_FAILURE);
-
     }
 
+    // Populate new args array
+    int new_agrs_count = 0;
     for(int i=0; i < (argc - new_program_index); ++i)
     {
+        ++new_agrs_count;
         new_args[i] = argv[i + new_program_index];
     }
+    new_args[new_agrs_count] = NULL; // Adds NULL terminator for execvp
 
-    // TESTS
-    /*
-    for(int i=0; i < (argc - new_program_index); ++i)
+// -----------------------------------------------------------------------
+
+    // fork so the program from execvp becomes PID 1, insted of his childs
+    // - out of memory error
+    // - kill all processes when PID 1 exists
+    if(fork_enabled)
     {
-        printf(" new_arg[%d]: %s\n", i, new_args[i]);
-    }
-    */
+        pid = fork();
+        if(pid == -1)
+        {
+            perror("Fork failed\n");
+            exit(EXIT_FAILURE);
+        }
 
-    // Load profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT)
+        if(pid != 0)
+        {
+            wait(NULL); // Wait child finish and then terminate
+            return 0;
+        }
+    }
+
+// -----------------------------------------------------------------------
+
+    // Load profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT) adds no new privs
     if (seccomp_enabled) {seccomp_load(ctx);}
+
+    // Add no_new_privs even without seccomp
+    else if( prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) )
+    {
+        perror("Prctl error");
+        exit(EXIT_FAILURE);
+    }
 
     // Execute a new process with the arguments passed
     if( execvp(argv[new_program_index], new_args) == -1 )
     {
+        //fprintf(stderr, "execvp(%s) \n", argv[new_program_index]);
         perror("Execvp error");
         exit(EXIT_FAILURE);
     }
+
 
     free(new_args);
     seccomp_release(ctx);
