@@ -715,11 +715,13 @@ time ./exec_program_seccomp \
 #include <sys/mount.h> // mount
 #include <sys/wait.h> // wait
 #include <stdlib.h>
+#include <sys/syscall.h> // pivot_root
 
 #include <sys/prctl.h> // prctl
 #include <linux/securebits.h>
 
 #include <ctype.h> // isdigit()
+#include <limits.h> // ULONG_MAX
 
 #include <sys/capability.h> // capability
 
@@ -777,6 +779,12 @@ struct MountCommand
     void* data_options;
 };
 
+// pivot_root definition from man pivot_root 2
+static int pivot_root(const char *new_root, const char *put_old)
+{
+    return syscall(SYS_pivot_root, new_root, put_old);
+}
+
 int ValidateDigitString(char* string)
 {
     for(int i = 0; i < strlen(string); ++i)
@@ -790,6 +798,184 @@ int ValidateDigitString(char* string)
     return 0; // ALL chars are numbers (this also avaluates spaces and ANY other character)
 }
 
+// Strsep like function that works on const strings and don't modify pointers
+// caller is responsible to free the memory
+char* ConstStringStrsep(char* string, char separator, unsigned long* index)
+{
+    unsigned long start_index = *index;
+    //printf("start_index[%ld] : index[%ld] \n", start_index, *index);
+
+    if(string[start_index] == '\0')
+    {
+        //printf("%s", "return NULL \n");
+        return NULL;
+    }
+
+    // Subsequent runs may start in the previous separator
+    if(string[start_index] == separator)
+    {
+        ++start_index;
+        ++*index;
+    }
+
+    while( string[*index] != separator && string[*index] != '\0' )
+    {
+        //printf("index[%ld] : %c \n", *index, string[*index]);
+        ++*index;
+    }
+
+    char* result_string = malloc( *index-start_index + 1 );
+
+    // Repeted separator
+    if( (*index-start_index) == 1 )
+    {
+        result_string = " ";
+    }
+    else
+    {
+        // copy
+        for(int i = 0; i < (*index-start_index); ++i)
+        {
+            result_string[i] = string[i+start_index];
+            //printf("result_string[%d] %c\n", i, result_string[i]);
+        }
+        result_string[*index-start_index] = '\0';
+    }
+
+    return result_string;
+}
+
+uint32_t GetSeccompAction(char* action_string)
+{
+    unsigned long index = 0;
+    uint16_t seccomp_error_code = 1;
+    char* result = ConstStringStrsep(action_string, '=', &index); // It returns the full string if it has no sep
+
+    if(strcmp("SCMP_ACT_KILL", result) == 0)
+    {
+        free(result);
+        return SCMP_ACT_KILL;
+    }
+
+    else if(strcmp("SCMP_ACT_KILL_PROCESS", result) == 0)
+    {
+        free(result);
+        return SCMP_ACT_KILL_PROCESS;
+    }
+
+    else if(strcmp("SCMP_ACT_TRAP", result) == 0)
+    {
+        free(result);
+        return SCMP_ACT_TRAP;
+    }
+
+    else if(strcmp("SCMP_ACT_ERRNO", result) == 0)
+    {
+        free(result);
+        result = ConstStringStrsep(action_string, '=', &index);
+
+        seccomp_error_code = strtol(result, NULL, 10);
+        free(result);
+
+        return SCMP_ACT_ERRNO(seccomp_error_code);
+    }
+
+    else if(strcmp("SCMP_ACT_LOG", result) == 0)
+    {
+        free(result);
+        return SCMP_ACT_LOG;
+    }
+
+    else if(strcmp("SCMP_ACT_ALLOW", result) == 0)
+    {
+        free(result);
+        return SCMP_ACT_ALLOW;
+    }
+
+    else
+    {
+        free(result);
+        return -1;
+    }
+}
+
+int GetUnshareMask(char* string_ns)
+{
+    unsigned long index = 0;
+    int unshare_mask = 0;
+    char* result;
+    bool subtraction_mode = false; // Removes namespaces after setting them all
+
+    while((result = ConstStringStrsep(string_ns, '-', &index)) != NULL) // It returns the full string if it has no sep
+    {
+        if(strcmp("all", result) == 0)
+        {
+            unshare_mask = CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER;
+            subtraction_mode = true;
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("cgroup", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWCGROUP) : (unshare_mask |= CLONE_NEWCGROUP);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("ipc", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWIPC) : (unshare_mask |= CLONE_NEWIPC);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("mount", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWNS) : (unshare_mask |= CLONE_NEWNS);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("net", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWNET) : (unshare_mask |= CLONE_NEWNET);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("pid", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWPID) : (unshare_mask |= CLONE_NEWPID);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("uts", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWUTS) : (unshare_mask |= CLONE_NEWUTS);
+            free(result);
+            continue;
+        }
+
+        else if(strcmp("user", result) == 0)
+        {
+            subtraction_mode ? (unshare_mask ^= CLONE_NEWUSER) : (unshare_mask |= CLONE_NEWUSER);
+            free(result);
+            continue;
+        }
+
+        else
+        {
+            free(result);
+            return -1;
+        }
+    }
+
+    free(result);
+    return unshare_mask;
+}
+
 int main(int argc, char *argv[])
 {
     // configuration variables
@@ -801,10 +987,8 @@ int main(int argc, char *argv[])
     int syscall_list_size = 100;
     int syscall_count = 0;
     char** seccomp_syscalls_list = malloc(syscall_list_size * sizeof(char*));
-
-    long mount_count = 0;
-    long mount_commands_list_size = 100;
-    struct MountCommand* mount_list = malloc(mount_commands_list_size * sizeof(struct MountCommand));
+    uint32_t seccomp_syscall_action = SCMP_ACT_ALLOW; // allow list
+    uint32_t seccomp_default_action = SCMP_ACT_KILL_PROCESS;
 
     pid_t pid;
     bool fork_enabled = false;
@@ -813,8 +997,13 @@ int main(int argc, char *argv[])
     bool set_gid = false;
     char* uid;
     char* gid;
-    uid_t real_uid;
-    gid_t real_gid;
+    uid_t real_uid = getuid();
+    gid_t real_gid = getgid();
+
+    bool keep_privs = false;
+
+    bool pivot_root_enabled = false;
+    char* new_root_dir;
 
     if(seccomp_syscalls_list == NULL)
     {
@@ -839,23 +1028,192 @@ int main(int argc, char *argv[])
             {
                 char help_text[] =
                 "\n"
-                "sandbox_exec [OPTIONS] PROGRAM_PATH [PROGRAM_ARGS] \n\n"
+                "sandbox_exec [OPTIONS] <PROGRAM_PATH> [PROGRAM_ARGS] \n\n"
+
+                "[ATENTION]\n"
+                "\t all options are run in the oder that they where given, not using unshare or fork first may lead to 'permission denied' erros \n"
+
+                "\n"
+
+                "[EXAMPLES]\n"
+                "\t sandbox_exec --unshare --fork --no-seccomp bash \n"
+                "\t sandbox_exec --unshare --fork --mount tempfs_device_name ./tmpfs_dir tmpfs NULL NULL bash \n"
+                "\t sandbox_exec --unshare --fork --pivot-root ./new_root --mount tempfs_device_name / tmpfs NULL NULL bash \n"
+
+                "\n"
+
+                "[REFERENCES]\n"
+                "\t man 2 mount (FLAGS) \n"
+                "\t man seccomp_rule_add (ACTIONS) \n"
+
+                "\n"
+
                 "[OPTIONS]\n"
-                "--help : displays help \n"
-                "--fork : fork before calling the program \n"
-                "--uid NS_UID : set user id in the new namespace (maps to current uid outside of the ns) \n"
-                "--gid NS_GID : set primary group id in the new namespace (maps to current gid outside of the ns) \n"
-                "*--uid_map NS_UID REAL_UID : maps a ns UID to a real UID (privileged user namesapce) \n"
-                "*--gid_map NS_GID REAL_GID : maps a ns GID to a real GID (privileged user namesapce) \n"
-                "--no-seccomp : disable seccomp filters \n"
-                "--seccomp-syscalls <SYSCALLS,...> : list of allowed syscalls separated by ',' \n"
-                "--mount <SRC> <DEST> <FILESYSTEM TYPE> [FLAGS] [OPTS] : mount a filesystem (use 'none' when empty)\n"
-                "--apparmor-profile PROFILE : selects a custom AppArmor profile \n"
+                "--help \t displays help \n\n"
+
+                "--unshare <NS> \n\t run the unshare syscall (uses ALL namespaces) \n"
+                "\t NS is a '-' separated list (user-uts-pid-ipc-mount-cgroup-net OR all) \n"
+                "\t NS = all, user, pid, net, mount, ipc, uts, cgroups \n"
+                "\t You can use 'all-*' to enable all namaspaces and just remove the following ones \n\n"
+
+                "--setns <PATH> <NS> \n\t join a namespace of a given file or process. Uses the same options as the '--unshare' but can pass 'any' to use the file's namespace \n\n"
+
+                "--fork \n\t fork before calling the program \n\n"
+
+                "--keep-privs \n\t don't drop privs and doesn't enable/lock the secure bits"
+
+                "--uid <NS_UID> \n\t set user id in the new namespace (maps to current uid outside of the ns) \n\n"
+
+                "--gid <NS_GID> \n\t set primary group id in the new namespace (maps to current gid outside of the ns) \n\n"
+
+                //"*--uid_map NS_UID REAL_UID \n\t maps a ns UID to a real UID (privileged user namesapce) \n\n"
+
+                //"*--gid_map NS_GID REAL_GID \n\t maps a ns GID to a real GID (privileged user namesapce) \n\n"
+
+                "--no-seccomp \n\t disable seccomp filters (allow list is the default) \n\n"
+
+                "--seccomp-default-action <ACTION> \n\t select a default action to use in the seccomp filter (SCMP_ACT_KILL_PROCESS) \n\t Exception: SCMP_ACT_ERRNO=N \n\n"
+
+                "--seccomp-syscall-action <ACTION> \n\t select an action to use in the seccomp filter for every syscall selected (SCMP_ACT_ALLOW) \n\t Exception: SCMP_ACT_ERRNO=N \n\n"
+
+                "--seccomp-syscalls <SYSCALLS,...> \n\t list of allowed syscalls separated by ',' \n\n"
+
+                //"*--seccomp-arch <ARCH> \n\t selects an arch \n\n"
+
+                "--mkdir <DIR> <MASK> \n\t calls mkdir (also calls chmod too in the directory) \n\n"
+
+                "--mount <SRC> <DEST> <FILESYSTEM TYPE> [FLAGS] [OPTS] \n\t calls mount syscall directly (use 'NULL' when empty) \n\n"
+
+                "--pivot-root <NEW ROOT> \n\t make a new root dir with pivot root syscall \n\n"
+
+                "--apparmor-profile <PROFILE> \n\t selects a custom AppArmor profile \n\n"
+
                 "\n* - future features, not yet ready\n";
 
                 printf("%s", help_text);
 
                 return 0;
+            }
+
+            else if(strcmp("--test", argv[i]) == 0)
+            {
+                printf("all : %d \t all_test : %d \n", CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER, GetUnshareMask("all"));
+                printf("cgroup : %d \t cgroup : %d \n", CLONE_NEWCGROUP, GetUnshareMask("cgroup"));
+                printf("ipc : %d \t ipc : %d \n", CLONE_NEWIPC, GetUnshareMask("ipc"));
+                printf("mount : %d \t mount : %d \n", CLONE_NEWNS, GetUnshareMask("mount"));
+                printf("net : %d \t net : %d \n", CLONE_NEWNET, GetUnshareMask("net"));
+                printf("pid : %d \t pid : %d \n", CLONE_NEWPID, GetUnshareMask("pid"));
+                printf("uts : %d \t uts : %d \n", CLONE_NEWUTS, GetUnshareMask("uts"));
+                printf("user : %d \t user : %d \n", CLONE_NEWUSER, GetUnshareMask("user"));
+
+                printf("all-net : %d \t user-uts-pid-ipc-mount-cgroup : %d \n",(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER)^(CLONE_NEWNET), GetUnshareMask("all-net"));
+                printf("all-net-user : %d \t user-uts-pid-ipc-mount-cgroup : %d \n",(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER)^(CLONE_NEWNET|CLONE_NEWUSER), GetUnshareMask("all-net-user"));
+                exit(-1);
+            }
+
+            else if(strcmp("--unshare", argv[i]) == 0)
+            {
+                // man unshare(2)
+                // Creates new namespaces with unshare syscall
+                // IMPORTANT: CLONE_NEWUSER grants ALL CAPABILITIES in the new namespace 
+                if(unshare(GetUnshareMask(argv[i+1])) == -1)
+                {
+                    perror("Unshare");
+                    exit(EXIT_FAILURE);
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--setns", argv[i]) == 0)
+            {
+                // see man 2 setns
+                int fd = open(argv[i+1], O_RDONLY | O_CLOEXEC);
+                int namespaces = 0;
+
+                if (fd == -1)
+                {
+                    perror("open");
+                    exit(EXIT_FAILURE);
+                }
+
+                if(argv[i+1] != "any")
+                {
+                    namespaces = GetUnshareMask(argv[i+1]);
+                }
+
+                // Might need to call unshare(CLONE_NEWUSER); before executing setns
+                if(setns(fd, namespaces) == -1)
+                {
+                    perror("Unshare");
+                    exit(EXIT_FAILURE);
+                }
+
+                i = i + 2;
+                continue;
+            }
+
+            else if(strcmp("--fork", argv[i]) == 0)
+            {
+                fork_enabled = true;
+
+                // fork so the program from execvp becomes PID 1, insted of his childs
+                // Not using fork may cause:
+                // - out of memory error
+                // - kill all processes when PID 1 exists
+                if(fork_enabled)
+                {
+                    pid = fork();
+                    if(pid == -1)
+                    {
+                        perror("Fork failed\n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if(pid != 0)
+                    {
+                        wait(NULL); // Wait child finish and then terminate
+                        return 0;
+                    }
+                }
+                continue;
+            }
+
+            else if(strcmp("--keep-privs", argv[i]) == 0)
+            {
+                keep_privs = true;
+                continue;
+            }
+
+            else if(strcmp("--mkdir", argv[i]) == 0)
+            {
+                mode_t mode;
+
+                if( ValidateDigitString(argv[i+2]) == 0)
+                {
+                    mode = strtol(argv[i+2], NULL, 8);
+
+                    if(mode == ULONG_MAX)
+                    {
+                        perror("Mode mask error");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
+                if(mkdir(argv[i+1], mode) == -1)
+                {
+                    perror("mkdir");
+                    exit(EXIT_FAILURE);
+                }
+                if(chmod(argv[i+1], mode) == -1)
+                {
+                    perror("chmod");
+                    exit(EXIT_FAILURE);
+                }
+
+                i = i + 2;
+                continue;
             }
 
             else if(strcmp("--no-seccomp", argv[i]) == 0)
@@ -867,7 +1225,6 @@ int main(int argc, char *argv[])
             else if(strcmp("--uid", argv[i]) == 0)
             {
                 set_uid = true;
-                real_uid = getuid();
 
                 if( ValidateDigitString(argv[i+1]) == 0 )
                 {
@@ -879,6 +1236,29 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
 
+                // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
+                if(set_uid)
+                {
+                    FILE *fp = fopen("/proc/self/uid_map", "w");
+                    if (fp != NULL)
+                    {
+                        char uid_mapping[256];
+                        snprintf(uid_mapping, sizeof(uid_mapping), "%s %d 1\n", uid, real_uid);
+
+                        if(fputs(uid_mapping, fp) == -1)
+                        {
+                            perror("File write uid");
+                            exit(EXIT_FAILURE);
+                        }
+                        fclose(fp);
+                    }
+                    else
+                    {
+                        perror("Uid mapping error");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
                 ++i;
                 continue;
             }
@@ -886,7 +1266,6 @@ int main(int argc, char *argv[])
             else if(strcmp("--gid", argv[i]) == 0)
             {
                 set_gid = true;
-                real_gid = getgid();
 
                 if( ValidateDigitString(argv[i+1]) == 0 )
                 {
@@ -898,137 +1277,233 @@ int main(int argc, char *argv[])
                     exit(EXIT_FAILURE);
                 }
 
+                // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
+                if(set_gid)
+                {
+                    // Must deny setgroups to be able to use map_gid
+                    FILE *fp = fopen("/proc/self/setgroups", "w");
+                    if (fp != NULL)
+                    {
+                        if(fputs("deny\n", fp) == -1)
+                        {
+                            perror("File write setgroups");
+                            exit(EXIT_FAILURE);
+                        }
+                        fclose(fp);
+                    }
+                    else
+                    {
+                        perror("setgroups error");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    fp = fopen("/proc/self/gid_map", "w");
+                    if (fp != NULL)
+                    {
+                        char gid_mapping[256];
+                        snprintf(gid_mapping, sizeof(gid_mapping), "%s %d 1\n", gid, real_gid);
+
+                        if(fputs(gid_mapping, fp) == -1)
+                        {
+                            perror("File write gid");
+                            exit(EXIT_FAILURE);
+                        }
+                        fclose(fp);
+                    }
+                    else
+                    {
+                        perror("Gid mapping error");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--pivot-root", argv[i]) == 0)
+            {
+                pivot_root_enabled = true;
+                new_root_dir = argv[i+1];
+
+                if(pivot_root_enabled)
+                {
+                    // see https://man7.org/linux/man-pages/man2/pivot_root.2.html
+
+                    // sanity checks from man pivot_root 2 source code
+                    if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1)
+                    {
+                        perror("mount-MS_PRIVATE");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if (mount(new_root_dir, new_root_dir, NULL, MS_BIND, NULL) == -1)
+                    {
+                        perror("mount-MS_BIND");
+                        exit(EXIT_FAILURE);
+                    }
+
+
+                    if( chdir(new_root_dir) == -1 )
+                    {
+                        perror("chdir");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if( pivot_root(".", ".") == -1 )
+                    {
+                        perror("pivot_root");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if( umount2(".", MNT_DETACH) )
+                    {
+                        perror("umount2");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+
                 ++i;
                 continue;
             }
 
             else if(strcmp("--mount", argv[i]) == 0)
             {
-                ++mount_count;
-                long mount_index = mount_count - 1; // Index starts at 0 in arrays
+                struct MountCommand mount_command;
 
-                // If the list is too small, allocate more memory
-                if(mount_commands_list_size < mount_count)
-                {
-                    mount_commands_list_size += 1;
-                    mount_list = realloc(mount_list, mount_commands_list_size * sizeof(struct MountCommand));
+                (strcmp("NULL", argv[i + 1]) == 0) ? (mount_command.source = NULL) : (mount_command.source = argv[i + 1]);
+                (strcmp("NULL", argv[i + 2]) == 0) ? (mount_command.target = NULL) : (mount_command.target = argv[i + 2]);
+                (strcmp("NULL", argv[i + 3]) == 0) ? (mount_command.filesystemtype = NULL) : (mount_command.filesystemtype = argv[i + 3]);
+                mount_command.mountflags = 0; // argv[i + 4]
+                (strcmp("NULL", argv[i + 5]) == 0) ? (mount_command.data_options = NULL) : (mount_command.data_options = argv[i + 5]);
 
-                    //printf("sizeof(struct MountCommand*): %ld \nsizeof(struct MountCommand): %ld \n", sizeof(struct MountCommand*), sizeof(struct MountCommand));
-                    printf("mount_commands_list_size: %ld -- mount_count: %ld \n", mount_commands_list_size, mount_count);
-                }
-
-                (strcmp("none", argv[i + 1]) == 0) ? (mount_list[mount_index].source = "dummy_string") : (mount_list[mount_index].source = argv[i + 1]);
-                (strcmp("none", argv[i + 2]) == 0) ? (mount_list[mount_index].target = NULL) : (mount_list[mount_index].target = argv[i + 2]);
-                (strcmp("none", argv[i + 3]) == 0) ? (mount_list[mount_index].filesystemtype = NULL) : (mount_list[mount_index].filesystemtype = argv[i + 3]);
-                mount_list[mount_index].mountflags = 0; // argv[i + 4]
-                (strcmp("none", argv[i + 5]) == 0) ? (mount_list[mount_index].data_options = NULL) : (mount_list[mount_index].data_options = argv[i + 5]);
-
-                if(strcmp("none", argv[i + 4]) != 0)
+                if(strcmp("NULL", argv[i + 4]) != 0)
                 {
                     char* mount_flags = argv[i+4];
                     char* string;
+                    unsigned long index = 0;
 
                     // see man mount 2
-                    for(int j=0; (string=strsep(&mount_flags, "|")) != NULL; ++j)
+                    for(int j=0; (string=ConstStringStrsep(mount_flags, '|', &index)) != NULL; ++j)
                     {
                         if(strcmp("MS_REMOUNT", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_REMOUNT;
+                            mount_command.mountflags |= MS_REMOUNT;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_SHARED", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_SHARED;
+                            mount_command.mountflags |= MS_SHARED;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_PRIVATE", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_PRIVATE;
+                            mount_command.mountflags |= MS_PRIVATE;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_SLAVE", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_SLAVE;
+                            mount_command.mountflags |= MS_SLAVE;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_UNBINDABLE", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_UNBINDABLE;
+                            mount_command.mountflags |= MS_UNBINDABLE;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_DIRSYNC", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_DIRSYNC;
+                            mount_command.mountflags |= MS_DIRSYNC;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_LAZYTIME", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_LAZYTIME;
+                            mount_command.mountflags |= MS_LAZYTIME;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_MANDLOCK", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_MANDLOCK;
+                            mount_command.mountflags |= MS_MANDLOCK;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NOATIME", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NOATIME;
+                            mount_command.mountflags |= MS_NOATIME;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NODEV", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NODEV;
+                            mount_command.mountflags |= MS_NODEV;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NODIRATIME", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NODIRATIME;
+                            mount_command.mountflags |= MS_NODIRATIME;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NOEXEC", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NOEXEC;
+                            mount_command.mountflags |= MS_NOEXEC;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NOSUID", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NOSUID;
+                            mount_command.mountflags |= MS_NOSUID;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_RDONLY", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_RDONLY;
+                            mount_command.mountflags |= MS_RDONLY;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_REC", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_REC;
+                            mount_command.mountflags |= MS_REC;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_RELATIME", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_RELATIME;
+                            mount_command.mountflags |= MS_RELATIME;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_SILENT", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_SILENT;
+                            mount_command.mountflags |= MS_SILENT;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_STRICTATIME", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_STRICTATIME;
+                            mount_command.mountflags |= MS_STRICTATIME;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_SYNCHRONOUS", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_SYNCHRONOUS;
+                            mount_command.mountflags |= MS_SYNCHRONOUS;
+                            free(string);
                             continue;
                         }
                         else if(strcmp("MS_NOSYMFOLLOW", string) == 0)
                         {
-                            mount_list[mount_index].mountflags |= MS_NOSYMFOLLOW;
+                            mount_command.mountflags |= MS_NOSYMFOLLOW;
+                            free(string);
                             continue;
                         }
                         else
@@ -1036,25 +1511,32 @@ int main(int argc, char *argv[])
                             fprintf(stderr, "Invalid mount flag: %s \n", string);
                             exit(EXIT_FAILURE);
                         }
-
-                    //free(string);
                     }
+                    //free(string);
+                }
+
+                if( mount(mount_command.source, mount_command.target, mount_command.filesystemtype, mount_command.mountflags, mount_command.data_options) )
+                {
+                    fprintf(stderr, "Mount failed : mount(%s, %s, %s, %ld, %s)\n", mount_command.source, mount_command.target, mount_command.filesystemtype, mount_command.mountflags, (char*)mount_command.data_options);
+                    perror("Error");
+                    exit(EXIT_FAILURE);
                 }
 
                 i = i + 5;
                 continue;
             }
 
-            /*else if(strcmp("--no-apparmor", argv[i]) == 0)
-            {
-                apparmor_enabled = false;
-                continue;
-            }*/
-
             else if(strcmp("--apparmor-profile", argv[i]) == 0)
             {
                 apparmor_enabled = true;
                 apparmor_profile = argv[i+1];
+
+                // Select an AppArmor profile to use when execve gets called
+                if(apparmor_enabled)
+                {
+                    aa_change_onexec(apparmor_profile);
+                }
+
                 ++i;
                 continue;
             }
@@ -1063,10 +1545,11 @@ int main(int argc, char *argv[])
             {
                 char* seccomp_syscalls = argv[i+1];
                 char* string;
+                unsigned long index = 0;
 
                 ++i;
 
-                for(int j=0; (string=strsep(&seccomp_syscalls, ",")) != NULL; ++j)
+                for(int j=0; (string=ConstStringStrsep(seccomp_syscalls, ',', &index)) != NULL; ++j)
                 {
                     ++syscall_count;
 
@@ -1083,9 +1566,19 @@ int main(int argc, char *argv[])
                 continue;
             }
 
-            else if(strcmp("--fork", argv[i]) == 0)
+            else if(strcmp("--seccomp-default-action", argv[i]) == 0)
             {
-                fork_enabled = true;
+                seccomp_default_action = GetSeccompAction(argv[i+1]);
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--seccomp-syscall-action", argv[i]) == 0)
+            {
+                seccomp_syscall_action = GetSeccompAction(argv[i+1]);
+
+                ++i;
                 continue;
             }
 
@@ -1119,9 +1612,9 @@ int main(int argc, char *argv[])
     int rc = -1; // error code
 
     // start the filter(context - ctx) and select a default behavior or action
-    scmp_filter_ctx ctx = seccomp_init(SCMP_ACT_KILL_PROCESS); // kill the entire process if any violation occurs
+    scmp_filter_ctx ctx = seccomp_init(seccomp_default_action); // kill the entire process if any violation occurs
 
-    // Select the correct architecture
+    // Adds an architecture
     //seccomp_arch_add(ctx, SCMP_ARCH_X86);
 
     //printf("List size: %d \n", syscall_list_size);
@@ -1130,9 +1623,9 @@ int main(int argc, char *argv[])
         //printf("Syscall: %s \n", seccomp_syscalls_list[i]);
         int error_code = -1;
 
-        // Add a rule to a context - (context, action, syscall, number of arguments to verify) - seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
+        // Add a rule to a context - (context, action, syscall, number of arguments to verify, [compare expressions]) - seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), 0);
         // Dynamically resolve syscalls names from a string
-        error_code = seccomp_rule_add(ctx, SCMP_ACT_ALLOW, seccomp_syscall_resolve_name(seccomp_syscalls_list[i]), 0);
+        error_code = seccomp_rule_add(ctx, seccomp_syscall_action, seccomp_syscall_resolve_name(seccomp_syscalls_list[i]), 0);
 
         if(error_code < 0)
         {
@@ -1142,119 +1635,40 @@ int main(int argc, char *argv[])
             seccomp_release(ctx);
             exit(EXIT_FAILURE);
         }
+
+        free(seccomp_syscalls_list[i]);
     }
 
     free(seccomp_syscalls_list);
 
-// -----------------------------------------------------------------------
 
-    // Select an AppArmor profile to use when execve gets called
-    if(apparmor_enabled)
+// -----------------------------------------------------------------------*/
+
+    if(keep_privs == false)
     {
-        aa_change_onexec(apparmor_profile);
-    }
-
-// -----------------------------------------------------------------------
-
-    // man unshare(2)
-    // Creates new namespaces with unshare syscall
-    // IMPORTANT: CLONE_NEWUSER grants ALL CAPABILITIES in the new namespace 
-    if(unshare(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER) == -1)
-    {
-        perror("Unshare");
-        exit(EXIT_FAILURE);
-    }
-
-    // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
-    if(set_uid)
-    {
-        FILE *fp = fopen("/proc/self/uid_map", "w");
-        if (fp != NULL)
+        // setting the most restrictive secure bits and locking them
+        // see man capabilities 7
+        if( prctl(PR_SET_SECUREBITS, SECBIT_NO_SETUID_FIXUP_LOCKED|SECBIT_NOROOT|SECBIT_NOROOT_LOCKED|SECBIT_KEEP_CAPS_LOCKED|SECBIT_NO_CAP_AMBIENT_RAISE|SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) )
         {
-            char uid_mapping[256];
-            snprintf(uid_mapping, sizeof(uid_mapping), "%s %d 1\n", uid, real_uid);
-
-            fputs(uid_mapping, fp);
-            fclose(fp);
-        }
-        else
-        {
-            perror("Uid mapping error");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
-    if(set_gid)
-    {
-        // Must deny setgroups to be able to use map_gid
-        FILE *fp = fopen("/proc/self/setgroups", "w");
-        if (fp != NULL)
-        {
-            fputs("deny\n", fp);
-            fclose(fp);
-        }
-        else
-        {
-            perror("setgroups error");
+            perror("Prctl error");
             exit(EXIT_FAILURE);
         }
 
-        fp = fopen("/proc/self/gid_map", "w");
-        if (fp != NULL)
+        // Drop all ambient capabilities
+        if( cap_reset_ambient() == -1 )
         {
-            char gid_mapping[256];
-            snprintf(gid_mapping, sizeof(gid_mapping), "%s %d 1\n", gid, real_gid);
-
-            fputs(gid_mapping, fp);
-            fclose(fp);
-        }
-        else
-        {
-            perror("Gid mapping error");
+            perror("Cap ambient reset");
             exit(EXIT_FAILURE);
         }
-    }
 
-
-// -----------------------------------------------------------------------
-
-    for(int i = 0; i < mount_count; ++i)
-    {
-        //printf("fake_mount(%s, %s, %s, %ld, %s)\n", mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, (char*)mount_list[i].data_options);
-        if( mount(mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, mount_list[i].data_options) )
+        // Drop all bound capabilities
+        for(int i=0; i < ( sizeof(cap_list) / sizeof(cap_value_t) ); ++i)
         {
-            fprintf(stderr, "Mount failed : mount(%s, %s, %s, %ld, %s)\n", mount_list[i].source, mount_list[i].target, mount_list[i].filesystemtype, mount_list[i].mountflags, (char*)mount_list[i].data_options);
-            perror("Error");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    free(mount_list);
-// -----------------------------------------------------------------------
-
-    // setting the most restrictive secure bits and locking them
-    // see man capabilities 7
-    if( prctl(PR_SET_SECUREBITS, SECBIT_NO_SETUID_FIXUP|SECBIT_NO_SETUID_FIXUP_LOCKED|SECBIT_NOROOT|SECBIT_NOROOT_LOCKED|SECBIT_KEEP_CAPS_LOCKED|SECBIT_NO_CAP_AMBIENT_RAISE|SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) )
-    {
-        perror("Prctl error");
-        exit(EXIT_FAILURE);
-    }
-
-    // Drop all ambient capabilities
-    if( cap_reset_ambient() == -1 )
-    {
-        perror("Cap ambient reset");
-        exit(EXIT_FAILURE);
-    }
-
-    // Drop all bound capabilities
-    for(int i=0; i < ( sizeof(cap_list) / sizeof(cap_value_t) ); ++i)
-    {
-        if(cap_drop_bound(cap_list[i]) == -1)
-        {
-            perror("Cap drop bound");
-            exit(EXIT_FAILURE);
+            if(cap_drop_bound(cap_list[i]) == -1)
+            {
+                perror("Cap drop bound");
+                exit(EXIT_FAILURE);
+            }
         }
     }
 
@@ -1279,35 +1693,18 @@ int main(int argc, char *argv[])
 
 // -----------------------------------------------------------------------
 
-    // fork so the program from execvp becomes PID 1, insted of his childs
-    // - out of memory error
-    // - kill all processes when PID 1 exists
-    if(fork_enabled)
-    {
-        pid = fork();
-        if(pid == -1)
-        {
-            perror("Fork failed\n");
-            exit(EXIT_FAILURE);
-        }
-
-        if(pid != 0)
-        {
-            wait(NULL); // Wait child finish and then terminate
-            return 0;
-        }
-    }
-
-// -----------------------------------------------------------------------
-
     // Load profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT) adds no new privs
     if (seccomp_enabled) {seccomp_load(ctx);}
 
     // Add no_new_privs even without seccomp
-    else if( prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) )
+    
+    else if(keep_privs == false)
     {
-        perror("Prctl error");
-        exit(EXIT_FAILURE);
+        if( prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) )
+        {
+            perror("Prctl error");
+            exit(EXIT_FAILURE);
+        }
     }
 
     // Execute a new process with the arguments passed
@@ -1317,7 +1714,6 @@ int main(int argc, char *argv[])
         perror("Execvp error");
         exit(EXIT_FAILURE);
     }
-
 
     free(new_args);
     seccomp_release(ctx);
