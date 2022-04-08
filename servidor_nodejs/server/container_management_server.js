@@ -18,6 +18,8 @@ const SpawnAsync = util.promisify(child_process.spawn);
 
 // https://developer.ibm.com/articles/avoiding-arbitrary-code-execution-vulnerabilities-when-using-nodejs-child-process-apis/
 
+console.log("Working dir: " + process.cwd());
+
 // Security settings
 let security_settings = 
 {
@@ -107,17 +109,7 @@ app.post('/RegisterApp', async (req, res) =>
 
         app_key[app_name] = crypto.randomBytes(48).toString('hex');
 
-        await fs.promises.mkdir(`./apps/${app_name}`/*, (err) =>
-        {
-            if (err)
-            {
-                if(err.code == 'EEXIST')
-                {
-                    console.log("App already exists");
-                }
-                else {throw err;}
-            }
-        }*/);
+        await fs.promises.mkdir(`./apps/${app_name}`);
     }
     catch(error)
     {
@@ -131,7 +123,10 @@ app.post('/RegisterApp', async (req, res) =>
         }
     }
 
-        try{await fs.promises.mkdir(`./apps/${app_name}/bin`/*, (err) => {if (err) {throw err }}*/);} catch(error) {if(error.code == 'EEXIST'){console.log("Path already exists" + error);}};
+        // app_source is a mount point for tmpfs
+        try{await fs.promises.mkdir(`./apps/${app_name}/app_source`);} catch(error) {if(error.code == 'EEXIST'){console.log("App source already exists" + error);}};
+
+        try{await fs.promises.mkdir(`./apps/${app_name}/bin`);} catch(error) {if(error.code == 'EEXIST'){console.log("Bin already exists" + error);}};
 
         await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body)/*, (err) => { if (err) throw err; }*/);
 
@@ -170,7 +165,8 @@ app.post('/Execute/', async (req, res) =>
             {
                 // all file are build in the tmpfs folder and only the binary is stored on the host
                 // tmpfs limit to avoid zip bombs
-                await ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
+                //await ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
+                await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all-pid`, `--fork`, `--uid`, `1000`,`--gid`, `1000`, `--apparmor-profile-immediate`, `compilation_security_profile`, `--mount`, `tmpfs_device`, `/tmp`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--mount`, `tmpfs_device_src`, `${__dirname}/apps/${req.body.app_name}/app_source`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--no-seccomp`, `/media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh`, `${__dirname}/apps/${req.body.app_name}` ]);
                 //console.log(stdout);
             }
 
@@ -178,7 +174,7 @@ app.post('/Execute/', async (req, res) =>
 
 
             // Execution
-            let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--seccomp-syscalls`, `${seccomp_allowed_syscalls}`, `${app_to_execute}`]);
+            let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all`, `--fork`, `--uid`, `1000`,`--gid`, `1000`, '--no-seccomp', `--seccomp-syscalls`, `${seccomp_allowed_syscalls}`, `--pivot-root`, `${__dirname}/apps/${req.body.app_name}/bin`, `/AppExecutable`]);
 
             res.json
             ({

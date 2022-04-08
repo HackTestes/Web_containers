@@ -1,20 +1,66 @@
 #include <tunables/global>
 
-profile security_transition_executable_profile {
+profile security_transition_executable_profile flags=(attach_disconnected){
     #include <abstractions/base>
 
-    "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**" cx -> &restricted_native_web_app,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/** cx -> &restricted_native_web_app, # no_new_privs
+    /AppExecutable cx -> &restricted_native_web_app, # no_new_privs pivot_root
     /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp r,
     unix (send, receive),
 
     capability sys_admin bpf setpcap,
     /usr/lib/** rm,
     /etc/ld.so.cache r,
+
+    # Unshare uid, gid mapping
+    /proc/*/uid_map rw,
+    /proc/*/gid_map rw,
+    /proc/*/setgroups rw,
+    mount,
+    umount,
+    pivot_root,
+
+    # Compilation transition
+    # /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh cx -> &compilation_security_profile,
+    # /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh r,
+
+    change_profile -> compilation_security_profile,
 }
 
-profile restricted_native_web_app {
+profile compilation_security_profile {
+    #include <abstractions/base>
+
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh r,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh ix,
+    /usr/bin/gcc ix,
+    /usr/bin/g++ ix,
+    /usr/bin/x86_64-linux-gnu-g++-11 ix,
+    /usr/lib/gcc/x86_64-linux-gnu/** ix,
+    /usr/bin/x86_64-linux-gnu-as ix,
+    /usr/bin/x86_64-linux-gnu-ld.bf ix,
+    /usr/bin/x86_64-linux-gnu* ix,
+    #/usr/bin/* ix,
+    /usr/include/** r, # include files
+    /usr/bin/make ix,
+    /usr/bin/unzip rix,
+    /usr/bin/bash r,
+    /usr/bin/pwd ix,
+
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/makefile_internal_container_build r,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/makefile_internal_container_build ix,
+
+    # Relative path
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/** rw,
+
+    # new /tmp in the namespace
+    /tmp/** rw,
+}
+
+
+profile restricted_native_web_app flags=(attach_disconnected){
     #include <abstractions/base>
 
     /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/** r,
+    /AppExecutable r,
     unix (send, receive),
 }

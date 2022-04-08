@@ -1,14 +1,33 @@
-	CC = g++
-ROOT_PATH = /container/tmpfs
-APP_PATH = $(ROOT_PATH)/app
-BIN_PATH = /container/bin
+# CC = g++
+# ROOT_PATH = /container/tmpfs
+# APP_PATH = $(ROOT_PATH)/app
+# BIN_PATH = /container/bin
+# SRC_PATH = $(ROOT_PATH)/app_source/src
+
+# CPP = $(wildcard $(SRC_PATH)/*.cpp)
+# OBJ = $(CPP:.cpp=.o)
+
+# $(SRC_PATH)/%.o: $(SRC_PATH)/%.cpp
+# 	$(CC) -c -o $@ $^
+
+# $(BIN_PATH)/AppExecutable: $(OBJ)
+# 	$(CC) -o $@ $^ -static
+
+
+# ---------------------------------
+
+CC = g++
+ROOT_PATH = $(shell pwd)
+APP_PATH = $(ROOT_PATH)
+BIN_PATH = $(ROOT_PATH)/bin
 SRC_PATH = $(ROOT_PATH)/app_source/src
 
+# List of codes
 CPP = $(wildcard $(SRC_PATH)/*.cpp)
 OBJ = $(CPP:.cpp=.o)
 
 $(SRC_PATH)/%.o: $(SRC_PATH)/%.cpp
-	$(CC) -c -o $@ $^
+	$(CC) -c -o $@ $^ -pipe
 
 $(BIN_PATH)/AppExecutable: $(OBJ)
-	$(CC) -o $@ $^ -static
+	$(CC) -o $@ $^ -static -pipe

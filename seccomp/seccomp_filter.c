@@ -1086,7 +1086,9 @@ int main(int argc, char *argv[])
 
                 "--pivot-root <NEW ROOT> \n\t make a new root dir with pivot root syscall \n\n"
 
-                "--apparmor-profile <PROFILE> \n\t selects a custom AppArmor profile \n\n"
+                "--apparmor-profile-exec <PROFILE> \n\t applies an AppArmor profile when execve is called \n\n"
+
+                "--apparmor-profile-immediate <PROFILE> \n\t applies an AppArmor right before no_new_privs is set \n\n"
 
                 "\n* - future features, not yet ready\n";
 
@@ -1526,16 +1528,23 @@ int main(int argc, char *argv[])
                 continue;
             }
 
-            else if(strcmp("--apparmor-profile", argv[i]) == 0)
+            else if(strcmp("--apparmor-profile-exec", argv[i]) == 0)
+            {
+                // Select an AppArmor profile to use when execve gets called
+                if(aa_change_onexec(argv[i+1]) == -1)
+                {
+                    perror("AppArmor change on exec");
+                    exit(EXIT_FAILURE);
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--apparmor-profile-immediate", argv[i]) == 0)
             {
                 apparmor_enabled = true;
                 apparmor_profile = argv[i+1];
-
-                // Select an AppArmor profile to use when execve gets called
-                if(apparmor_enabled)
-                {
-                    aa_change_onexec(apparmor_profile);
-                }
 
                 ++i;
                 continue;
@@ -1642,7 +1651,7 @@ int main(int argc, char *argv[])
     free(seccomp_syscalls_list);
 
 
-// -----------------------------------------------------------------------*/
+// -----------------------------------------------------------------------
 
     if(keep_privs == false)
     {
@@ -1693,6 +1702,15 @@ int main(int argc, char *argv[])
 
 // -----------------------------------------------------------------------
 
+    if(apparmor_enabled)
+    {
+        if( aa_change_profile(apparmor_profile) )
+        {
+            perror("aa_change_profile error");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     // Load profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT) adds no new privs
     if (seccomp_enabled) {seccomp_load(ctx);}
 
@@ -1710,7 +1728,7 @@ int main(int argc, char *argv[])
     // Execute a new process with the arguments passed
     if( execvp(argv[new_program_index], new_args) == -1 )
     {
-        //fprintf(stderr, "execvp(%s) \n", argv[new_program_index]);
+        fprintf(stderr, "execvp(%s, ...) \n", argv[new_program_index]);
         perror("Execvp error");
         exit(EXIT_FAILURE);
     }
@@ -1720,3 +1738,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+// /usr/bin/time -v strace -ve wait4 [comando]
