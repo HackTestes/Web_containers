@@ -697,6 +697,10 @@ time ./exec_program_seccomp \
     --apparmor-profile '/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**' \
 /bin/echo "hello"
 
+-> /usr/bin/time -v strace -ve wait4 [comando]
+-> starce -qfc <command>
+-> starce -qfc -U name -S calls <command>
+
 */
 
 #define _GNU_SOURCE
@@ -724,6 +728,8 @@ time ./exec_program_seccomp \
 #include <limits.h> // ULONG_MAX
 
 #include <sys/capability.h> // capability
+
+#include <dirent.h>  // directory
 
 const cap_value_t cap_list[] =
 {
@@ -975,6 +981,43 @@ int GetUnshareMask(char* string_ns)
     free(result);
     return unshare_mask;
 }
+void OptionPivotRoot(char* new_root_dir)
+{
+    // see https://man7.org/linux/man-pages/man2/pivot_root.2.html
+
+    // sanity checks from man pivot_root 2 source code
+    if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1)
+    {
+        perror("mount-MS_PRIVATE");
+        exit(EXIT_FAILURE);
+    }
+
+    // Verify if directory exists
+    if (mount(new_root_dir, new_root_dir, NULL, MS_BIND, NULL) == -1)
+    {
+        perror("mount-MS_BIND");
+        exit(EXIT_FAILURE);
+    }
+
+
+    if( chdir(new_root_dir) == -1 )
+    {
+        perror("chdir");
+        exit(EXIT_FAILURE);
+    }
+
+    if( pivot_root(".", ".") == -1 )
+    {
+        perror("pivot_root");
+        exit(EXIT_FAILURE);
+    }
+
+    if( umount2(".", MNT_DETACH) )
+    {
+        perror("umount2");
+        exit(EXIT_FAILURE);
+    }
+}
 
 int main(int argc, char *argv[])
 {
@@ -991,10 +1034,10 @@ int main(int argc, char *argv[])
     uint32_t seccomp_default_action = SCMP_ACT_KILL_PROCESS;
 
     pid_t pid;
-    bool fork_enabled = false;
+    //bool fork_enabled = false;
 
-    bool set_uid = false;
-    bool set_gid = false;
+    //bool set_uid = false;
+    //bool set_gid = false;
     char* uid;
     char* gid;
     uid_t real_uid = getuid();
@@ -1003,6 +1046,7 @@ int main(int argc, char *argv[])
     bool keep_privs = false;
 
     bool pivot_root_enabled = false;
+    bool use_host_filesystem = false;
     char* new_root_dir;
 
     if(seccomp_syscalls_list == NULL)
@@ -1036,9 +1080,9 @@ int main(int argc, char *argv[])
                 "\n"
 
                 "[EXAMPLES]\n"
-                "\t sandbox_exec --unshare --fork --no-seccomp bash \n"
-                "\t sandbox_exec --unshare --fork --mount tempfs_device_name ./tmpfs_dir tmpfs NULL NULL bash \n"
-                "\t sandbox_exec --unshare --fork --pivot-root ./new_root --mount tempfs_device_name / tmpfs NULL NULL bash \n"
+                "\t sandbox_exec --unshare all --fork --no-seccomp bash \n"
+                "\t sandbox_exec --unshare all --fork --mount tempfs_device_name ./tmpfs_dir tmpfs NULL size=1G bash \n"
+                "\t sandbox_exec --unshare all --fork --pivot-root ./new_root --mount tempfs_device_name / tmpfs MS_RDONLY size=1G,mode=0700 bash \n"
 
                 "\n"
 
@@ -1066,6 +1110,8 @@ int main(int argc, char *argv[])
 
                 "--gid <NS_GID> \n\t set primary group id in the new namespace (maps to current gid outside of the ns) \n\n"
 
+                "*--hostname <HOSTNAME> \n\t set namespace hostname (require unshare uts) \n\n"
+
                 //"*--uid_map NS_UID REAL_UID \n\t maps a ns UID to a real UID (privileged user namesapce) \n\n"
 
                 //"*--gid_map NS_GID REAL_GID \n\t maps a ns GID to a real GID (privileged user namesapce) \n\n"
@@ -1085,6 +1131,8 @@ int main(int argc, char *argv[])
                 "--mount <SRC> <DEST> <FILESYSTEM TYPE> [FLAGS] [OPTS] \n\t calls mount syscall directly (use 'NULL' when empty) \n\n"
 
                 "--pivot-root <NEW ROOT> \n\t make a new root dir with pivot root syscall \n\n"
+
+                "--host-filesystem \n\t disables the default pivot-root and reuses host's filesystem \n\n"
 
                 "--apparmor-profile-exec <PROFILE> \n\t applies an AppArmor profile when execve is called \n\n"
 
@@ -1111,6 +1159,13 @@ int main(int argc, char *argv[])
                 printf("all-net : %d \t user-uts-pid-ipc-mount-cgroup : %d \n",(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER)^(CLONE_NEWNET), GetUnshareMask("all-net"));
                 printf("all-net-user : %d \t user-uts-pid-ipc-mount-cgroup : %d \n",(CLONE_NEWCGROUP|CLONE_NEWIPC|CLONE_NEWNS|CLONE_NEWNET|CLONE_NEWPID|CLONE_NEWUTS|CLONE_NEWUSER)^(CLONE_NEWNET|CLONE_NEWUSER), GetUnshareMask("all-net-user"));
                 exit(-1);
+            }
+
+            else if(strcmp("--host-filesystem", argv[i]) == 0)
+            {
+                use_host_filesystem = true;
+
+                continue;
             }
 
             else if(strcmp("--unshare", argv[i]) == 0)
@@ -1158,26 +1213,21 @@ int main(int argc, char *argv[])
 
             else if(strcmp("--fork", argv[i]) == 0)
             {
-                fork_enabled = true;
-
                 // fork so the program from execvp becomes PID 1, insted of his childs
                 // Not using fork may cause:
                 // - out of memory error
                 // - kill all processes when PID 1 exists
-                if(fork_enabled)
+                pid = fork();
+                if(pid == -1)
                 {
-                    pid = fork();
-                    if(pid == -1)
-                    {
-                        perror("Fork failed\n");
-                        exit(EXIT_FAILURE);
-                    }
+                    perror("Fork failed\n");
+                    exit(EXIT_FAILURE);
+                }
 
-                    if(pid != 0)
-                    {
-                        wait(NULL); // Wait child finish and then terminate
-                        return 0;
-                    }
+                if(pid != 0)
+                {
+                    wait(NULL); // Wait child finish and then terminate
+                    return 0;
                 }
                 continue;
             }
@@ -1226,8 +1276,6 @@ int main(int argc, char *argv[])
 
             else if(strcmp("--uid", argv[i]) == 0)
             {
-                set_uid = true;
-
                 if( ValidateDigitString(argv[i+1]) == 0 )
                 {
                     uid = argv[i+1];
@@ -1239,26 +1287,23 @@ int main(int argc, char *argv[])
                 }
 
                 // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
-                if(set_uid)
+                FILE *fp = fopen("/proc/self/uid_map", "w");
+                if (fp != NULL)
                 {
-                    FILE *fp = fopen("/proc/self/uid_map", "w");
-                    if (fp != NULL)
-                    {
-                        char uid_mapping[256];
-                        snprintf(uid_mapping, sizeof(uid_mapping), "%s %d 1\n", uid, real_uid);
+                    char uid_mapping[256];
+                    snprintf(uid_mapping, sizeof(uid_mapping), "%s %d 1\n", uid, real_uid);
 
-                        if(fputs(uid_mapping, fp) == -1)
-                        {
-                            perror("File write uid");
-                            exit(EXIT_FAILURE);
-                        }
-                        fclose(fp);
-                    }
-                    else
+                    if(fputs(uid_mapping, fp) == -1)
                     {
-                        perror("Uid mapping error");
+                        perror("File write uid");
                         exit(EXIT_FAILURE);
                     }
+                    fclose(fp);
+                }
+                else
+                {
+                    perror("Uid mapping error");
+                    exit(EXIT_FAILURE);
                 }
 
                 ++i;
@@ -1267,8 +1312,6 @@ int main(int argc, char *argv[])
 
             else if(strcmp("--gid", argv[i]) == 0)
             {
-                set_gid = true;
-
                 if( ValidateDigitString(argv[i+1]) == 0 )
                 {
                     gid = argv[i+1];
@@ -1280,43 +1323,40 @@ int main(int argc, char *argv[])
                 }
 
                 // see man user_namespaces 7 - Defining user and group ID mappings: writing to uid_map and gid_map
-                if(set_gid)
+                // Must deny setgroups to be able to use map_gid
+                FILE *fp = fopen("/proc/self/setgroups", "w");
+                if (fp != NULL)
                 {
-                    // Must deny setgroups to be able to use map_gid
-                    FILE *fp = fopen("/proc/self/setgroups", "w");
-                    if (fp != NULL)
+                    if(fputs("deny\n", fp) == -1)
                     {
-                        if(fputs("deny\n", fp) == -1)
-                        {
-                            perror("File write setgroups");
-                            exit(EXIT_FAILURE);
-                        }
-                        fclose(fp);
-                    }
-                    else
-                    {
-                        perror("setgroups error");
+                        perror("File write setgroups");
                         exit(EXIT_FAILURE);
                     }
+                    fclose(fp);
+                }
+                else
+                {
+                    perror("setgroups error");
+                    exit(EXIT_FAILURE);
+                }
 
-                    fp = fopen("/proc/self/gid_map", "w");
-                    if (fp != NULL)
-                    {
-                        char gid_mapping[256];
-                        snprintf(gid_mapping, sizeof(gid_mapping), "%s %d 1\n", gid, real_gid);
+                fp = fopen("/proc/self/gid_map", "w");
+                if (fp != NULL)
+                {
+                    char gid_mapping[256];
+                    snprintf(gid_mapping, sizeof(gid_mapping), "%s %d 1\n", gid, real_gid);
 
-                        if(fputs(gid_mapping, fp) == -1)
-                        {
-                            perror("File write gid");
-                            exit(EXIT_FAILURE);
-                        }
-                        fclose(fp);
-                    }
-                    else
+                    if(fputs(gid_mapping, fp) == -1)
                     {
-                        perror("Gid mapping error");
+                        perror("File write gid");
                         exit(EXIT_FAILURE);
                     }
+                    fclose(fp);
+                }
+                else
+                {
+                    perror("Gid mapping error");
+                    exit(EXIT_FAILURE);
                 }
 
                 ++i;
@@ -1339,6 +1379,7 @@ int main(int argc, char *argv[])
                         exit(EXIT_FAILURE);
                     }
 
+                    // Verify if directory exists
                     if (mount(new_root_dir, new_root_dir, NULL, MS_BIND, NULL) == -1)
                     {
                         perror("mount-MS_BIND");
@@ -1618,6 +1659,23 @@ int main(int argc, char *argv[])
 
 // -----------------------------------------------------------------------
 
+    // Isolate host's filesystem by default
+    if(pivot_root_enabled == false && use_host_filesystem == false)
+    {
+        // see https://man7.org/linux/man-pages/man2/pivot_root.2.html
+
+        // sanity checks from man pivot_root 2 source code
+        if (mount("some_device", "/tmp", "tmpfs", MS_NODEV|MS_NOEXEC|MS_NOSUID|MS_RDONLY, "size=1K,mode=0700") == -1)
+        {
+            perror("mount - tmpfs - new default_root");
+            exit(EXIT_FAILURE);
+        }
+
+        OptionPivotRoot("/tmp");
+    }
+
+// -----------------------------------------------------------------------
+
     int rc = -1; // error code
 
     // start the filter(context - ctx) and select a default behavior or action
@@ -1700,6 +1758,21 @@ int main(int argc, char *argv[])
     }
     new_args[new_agrs_count] = NULL; // Adds NULL terminator for execvp
 
+// -----------------------------------------------------------------------
+/*
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(".");
+    printf("\n%s\n", "Directories:");
+    if (d)
+    {
+        while ((dir = readdir(d)) != NULL)
+        {
+            printf("\t%s\n", dir->d_name);
+        }
+        closedir(d);
+    }
+*/
 // -----------------------------------------------------------------------
 
     if(apparmor_enabled)
