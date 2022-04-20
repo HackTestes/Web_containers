@@ -1,0 +1,853 @@
+Linux caioh-System 5.13.0-39-generic #44-Ubuntu SMP Thu Mar 24 15:35:05 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+Architecture:                    x86_64
+CPU op-mode(s):                  32-bit, 64-bit
+Byte Order:                      Little Endian
+Address sizes:                   48 bits physical, 48 bits virtual
+CPU(s):                          12
+On-line CPU(s) list:             0-11
+Thread(s) per core:              2
+Core(s) per socket:              6
+Socket(s):                       1
+NUMA node(s):                    1
+Vendor ID:                       AuthenticAMD
+CPU family:                      25
+Model:                           33
+Model name:                      AMD Ryzen 5 5600X 6-Core Processor
+Stepping:                        0
+Frequency boost:                 disabled
+CPU MHz:                         2200.000
+CPU max MHz:                     4650,2920
+CPU min MHz:                     2200,0000
+BogoMIPS:                        7386.79
+Virtualization:                  AMD-V
+L1d cache:                       192 KiB
+L1i cache:                       192 KiB
+L2 cache:                        3 MiB
+L3 cache:                        32 MiB
+NUMA node0 CPU(s):               0-11
+Vulnerability Itlb multihit:     Not affected
+Vulnerability L1tf:              Not affected
+Vulnerability Mds:               Not affected
+Vulnerability Meltdown:          Not affected
+Vulnerability Spec store bypass: Mitigation; Speculative Store Bypass disabled via prctl and seccomp
+Vulnerability Spectre v1:        Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:        Mitigation; LFENCE, IBPB conditional, IBRS_FW, STIBP always-on, RSB filling
+Vulnerability Srbds:             Not affected
+Vulnerability Tsx async abort:   Not affected
+Flags:                           fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 erms invpcid cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip pku ospke vaes vpclmulqdq rdpid overflow_recov succor smca fsrm
+
+
+-------------------------------- TEST START --------------------------------
+
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: native
+.....................................
+
+time
+
+real	0m0,000s
+user	0m0,000s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 82%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 744
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 38
+	Voluntary context switches: 9
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:949659ns 
+ picoseconds:949us 
+ miliseconds:0ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: syscall
+.....................................
+syscall
+----------------
+mprotect
+brk
+execve
+uname
+readlink
+arch_prctl
+set_tid_address
+set_robust_list
+prlimit64
+getrandom
+----------------
+total
+
+
+//-----------------------------------------------------------------------------//
+
+Command: unshare -muinpUCT --fork --map-current-user -R /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks /return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,001s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "unshare -muinpUCT --fork --map-current-user -R /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks /return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2012
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 149
+	Voluntary context switches: 17
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:1507290ns 
+ picoseconds:1507us 
+ miliseconds:1ms
+
+//-----------------------------------------------------------------------------//
+
+Command: podman run --rm -ti --volume /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks:/ --entrypoint /return_0.exe empty_container 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,631s
+user	0m0,254s
+sys	0m0,028s
+.....................................
+
+/usr/bin/time
+	Command being timed: "podman run --rm -ti --volume /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks:/ --entrypoint /return_0.exe empty_container"
+	User time (seconds): 0.27
+	System time (seconds): 0.02
+	Percent of CPU this job got: 47%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.63
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 74324
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7077
+	Voluntary context switches: 3205
+	Involuntary context switches: 38
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 352
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:524353656ns 
+ picoseconds:524353us 
+ miliseconds:524ms
+
+//-----------------------------------------------------------------------------//
+
+Command: bwrap --unshare-all --cap-drop all --ro-bind /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks / /return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,002s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "bwrap --unshare-all --cap-drop all --ro-bind /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks / /return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2152
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 125
+	Voluntary context switches: 2
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:2554543ns 
+ picoseconds:2554us 
+ miliseconds:2ms
+
+//-----------------------------------------------------------------------------//
+
+Command: systemd-run --user --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+Running as unit: run-u774.service
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1ms
+CPU time consumed: 1ms
+
+real	0m0,010s
+user	0m0,006s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+Running as unit: run-u775.service
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 1ms
+CPU time consumed: 1ms
+	Command being timed: "systemd-run --user --wait -p NoNewPrivileges=true -p MemoryDenyWriteExecute=true -p PrivateUsers=true -p SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked -p CapabilityBoundingSet= -p AmbientCapabilities= /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 20%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6576
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 774
+	Voluntary context switches: 58
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:32980233ns 
+ picoseconds:32980us 
+ miliseconds:32ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp --keep-privs /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,001s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp --keep-privs /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 85%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1572
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 116
+	Voluntary context switches: 16
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:1207555ns 
+ picoseconds:1207us 
+ miliseconds:1ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe 
+.....................................
+Test program: 'return_0.exe'
+.....................................
+Args: ''
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,002s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/return_0.exe"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 0%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1580
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 164
+	Voluntary context switches: 18
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:1608781ns 
+ picoseconds:1608us 
+ miliseconds:1ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: native
+.....................................
+
+time
+
+real	0m0,001s
+user	0m0,000s
+sys	0m0,001s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 91%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1496
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 55
+	Voluntary context switches: 9
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:1396622ns 
+ picoseconds:1396us 
+ miliseconds:1ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: syscall
+.....................................
+syscall
+----------------
+write
+mprotect
+brk
+ioctl
+execve
+uname
+readlink
+arch_prctl
+set_tid_address
+newfstatat
+set_robust_list
+prlimit64
+getrandom
+----------------
+total
+
+
+//-----------------------------------------------------------------------------//
+
+Command: unshare -muinpUCT --fork --map-current-user -R /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks /cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,002s
+user	0m0,002s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "unshare -muinpUCT --fork --map-current-user -R /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks /cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2000
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 166
+	Voluntary context switches: 17
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:2221305ns 
+ picoseconds:2221us 
+ miliseconds:2ms
+
+//-----------------------------------------------------------------------------//
+
+Command: podman run --rm -ti --volume /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks:/ --entrypoint /cpu_single_thread_no_op_loop.exe empty_container 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,531s
+user	0m0,258s
+sys	0m0,016s
+.....................................
+
+/usr/bin/time
+	Command being timed: "podman run --rm -ti --volume /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks:/ --entrypoint /cpu_single_thread_no_op_loop.exe empty_container 1000000"
+	User time (seconds): 0.24
+	System time (seconds): 0.04
+	Percent of CPU this job got: 45%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.63
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 73036
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 7076
+	Voluntary context switches: 2685
+	Involuntary context switches: 34
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 352
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:640520531ns 
+ picoseconds:640520us 
+ miliseconds:640ms
+
+//-----------------------------------------------------------------------------//
+
+Command: bwrap --unshare-all --cap-drop all --ro-bind /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks / /cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,003s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "bwrap --unshare-all --cap-drop all --ro-bind /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks / /cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 50%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2068
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 121
+	Voluntary context switches: 2
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:3089401ns 
+ picoseconds:3089us 
+ miliseconds:3ms
+
+//-----------------------------------------------------------------------------//
+
+Command: systemd-run --user --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+Running as unit: run-u792.service
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 2ms
+CPU time consumed: 2ms
+
+real	0m0,012s
+user	0m0,003s
+sys	0m0,003s
+.....................................
+
+/usr/bin/time
+Running as unit: run-u793.service
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 2ms
+CPU time consumed: 2ms
+	Command being timed: "systemd-run --user --wait -p NoNewPrivileges=true -p MemoryDenyWriteExecute=true -p PrivateUsers=true -p SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked -p CapabilityBoundingSet= -p AmbientCapabilities= /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 20%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 6604
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 773
+	Voluntary context switches: 61
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:32779384ns 
+ picoseconds:32779us 
+ miliseconds:32ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp --keep-privs /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,001s
+user	0m0,001s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp --keep-privs /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1504
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 132
+	Voluntary context switches: 16
+	Involuntary context switches: 0
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:1812304ns 
+ picoseconds:1812us 
+ miliseconds:1ms
+
+//-----------------------------------------------------------------------------//
+
+Command: /media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000
+.....................................
+Test program: 'cpu_single_thread_no_op_loop.exe'
+.....................................
+Args: '1000000'
+.....................................
+Test type: speed
+.....................................
+
+time
+
+real	0m0,002s
+user	0m0,002s
+sys	0m0,000s
+.....................................
+
+/usr/bin/time
+	Command being timed: "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/cpu_single_thread_no_op_loop.exe 1000000"
+	User time (seconds): 0.00
+	System time (seconds): 0.00
+	Percent of CPU this job got: 100%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.00
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1516
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 181
+	Voluntary context switches: 18
+	Involuntary context switches: 1
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 0
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0
+.....................................
+
+date +%s%N
+ nanoseconds:2329768ns 
+ picoseconds:2329us 
+ miliseconds:2ms
+
+//-----------------------------------------------------------------------------//
+
+Command: unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebits +noroot,+noroot_locked,+no_setuid_fixup_locked,+keep_caps_locked capsh --print
+.....................................
+Test program: 'capsh'
+.....................................
+Args: '--print'
+.....................................
+Test type: security
+.....................................
+Current: =
+Bounding set =cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,cap_wake_alarm,cap_block_suspend,cap_audit_read,cap_perfmon,cap_bpf,cap_checkpoint_restore
+Ambient set =
+Current IAB: 
+Securebits: 053/0x2b/6'b101011
+ secure-noroot: yes (locked)
+ secure-no-suid-fixup: no (locked)
+ secure-keep-caps: no (locked)
+ secure-no-ambient-raise: no (unlocked)
+uid=0(root) euid=0(root)
+gid=0(root)
+groups=65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),0(root)
+Guessed mode: UNCERTAIN (0)
+
+
+//-----------------------------------------------------------------------------//
+
+Command: systemd-run --user -P --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' capsh --print
+.....................................
+Test program: 'capsh'
+.....................................
+Args: '--print'
+.....................................
+Test type: security
+.....................................
+Current: =
+Bounding set =
+Ambient set =
+Current IAB: !cap_chown,!cap_dac_override,!cap_dac_read_search,!cap_fowner,!cap_fsetid,!cap_kill,!cap_setgid,!cap_setuid,!cap_setpcap,!cap_linux_immutable,!cap_net_bind_service,!cap_net_broadcast,!cap_net_admin,!cap_net_raw,!cap_ipc_lock,!cap_ipc_owner,!cap_sys_module,!cap_sys_rawio,!cap_sys_chroot,!cap_sys_ptrace,!cap_sys_pacct,!cap_sys_admin,!cap_sys_boot,!cap_sys_nice,!cap_sys_resource,!cap_sys_time,!cap_sys_tty_config,!cap_mknod,!cap_lease,!cap_audit_write,!cap_audit_control,!cap_setfcap,!cap_mac_override,!cap_mac_admin,!cap_syslog,!cap_wake_alarm,!cap_block_suspend,!cap_audit_read,!cap_perfmon,!cap_bpf,!cap_checkpoint_restore
+Securebits: 053/0x2b/6'b101011
+ secure-noroot: yes (locked)
+ secure-no-suid-fixup: no (locked)
+ secure-keep-caps: no (locked)
+ secure-no-ambient-raise: no (unlocked)
+uid=1000(caioh) euid=1000(caioh)
+gid=1000(caioh)
+groups=65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),65534(nogroup),1000(caioh)
+Guessed mode: UNCERTAIN (0)
+
+
+//-----------------------------------------------------------------------------//
+

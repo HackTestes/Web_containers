@@ -32,5 +32,5 @@ function read_strace(input)
     //console.log(input); // In case you want to see the raw input
 }
 
-// Read rom stdin descriptor
+// Read from stdin descriptor
 read_strace( fs.readFileSync(0).toString() );

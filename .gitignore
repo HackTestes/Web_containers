@@ -2,3 +2,5 @@
 /servidor_nodejs/node_modules/**
 
 !*placeholder
+
+*.exe

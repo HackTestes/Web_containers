@@ -698,8 +698,8 @@ time ./exec_program_seccomp \
 /bin/echo "hello"
 
 -> /usr/bin/time -v strace -ve wait4 [comando]
--> starce -qfc <command>
--> starce -qfc -U name -S calls <command>
+-> strace -qfc <command>
+-> strace -qfc -U name -S calls <command>
 
 */
 
