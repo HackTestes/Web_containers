@@ -824,6 +824,7 @@ char* ConstStringStrsep(char* string, char separator, unsigned long* index)
         ++*index;
     }
 
+    // Count characters
     while( string[*index] != separator && string[*index] != '\0' )
     {
         //printf("index[%ld] : %c \n", *index, string[*index]);
@@ -832,7 +833,7 @@ char* ConstStringStrsep(char* string, char separator, unsigned long* index)
 
     char* result_string = malloc( *index-start_index + 1 );
 
-    // Repeted separator
+    // Repeated separator
     if( (*index-start_index) == 1 )
     {
         result_string = " ";
@@ -981,6 +982,7 @@ int GetUnshareMask(char* string_ns)
     free(result);
     return unshare_mask;
 }
+
 void OptionPivotRoot(char* new_root_dir)
 {
     // see https://man7.org/linux/man-pages/man2/pivot_root.2.html
@@ -1017,6 +1019,12 @@ void OptionPivotRoot(char* new_root_dir)
         perror("umount2");
         exit(EXIT_FAILURE);
     }
+}
+
+void PerrorExit(char* error_massage)
+{
+    perror(error_massage);
+    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[])
@@ -1110,7 +1118,9 @@ int main(int argc, char *argv[])
 
                 "--gid <NS_GID> \n\t set primary group id in the new namespace (maps to current gid outside of the ns) \n\n"
 
-                "*--hostname <HOSTNAME> \n\t set namespace hostname (require unshare uts) \n\n"
+                "--host-name <HOST_NAME> \n\t set namespace hostname (require unshare uts) \n\n"
+
+                "--domain-name <DOMAIN_NAME> \n\t set namespace hostname (require unshare uts) \n\n"
 
                 //"*--uid_map NS_UID REAL_UID \n\t maps a ns UID to a real UID (privileged user namesapce) \n\n"
 
@@ -1138,8 +1148,6 @@ int main(int argc, char *argv[])
 
                 "--apparmor-profile-immediate <PROFILE> \n\t applies an AppArmor right before no_new_privs is set \n\n"
 
-                "\n* - future features, not yet ready\n";
-
                 printf("%s", help_text);
 
                 return 0;
@@ -1161,6 +1169,28 @@ int main(int argc, char *argv[])
                 exit(-1);
             }
 
+            else if(strcmp("--host-name", argv[i]) == 0)
+            {
+                if( sethostname(argv[i+1], strlen(argv[i+1])) == -1)
+                {
+                    PerrorExit("Set host-name");
+                }
+
+                ++i;
+                continue;
+            }
+
+            else if(strcmp("--domain-name", argv[i]) == 0)
+            {
+                if (setdomainname(argv[i+1], strlen(argv[i+1])) == -1)
+                {
+                    PerrorExit("Set domain-name");
+                }
+
+                ++i;
+                continue;
+            }
+
             else if(strcmp("--host-filesystem", argv[i]) == 0)
             {
                 use_host_filesystem = true;
@@ -1175,8 +1205,7 @@ int main(int argc, char *argv[])
                 // IMPORTANT: CLONE_NEWUSER grants ALL CAPABILITIES in the new namespace 
                 if(unshare(GetUnshareMask(argv[i+1])) == -1)
                 {
-                    perror("Unshare");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("Unshare");
                 }
 
                 ++i;
@@ -1191,8 +1220,7 @@ int main(int argc, char *argv[])
 
                 if (fd == -1)
                 {
-                    perror("open");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("open");
                 }
 
                 if(argv[i+1] != "any")
@@ -1203,8 +1231,7 @@ int main(int argc, char *argv[])
                 // Might need to call unshare(CLONE_NEWUSER); before executing setns
                 if(setns(fd, namespaces) == -1)
                 {
-                    perror("Unshare");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("Unshare");
                 }
 
                 i = i + 2;
@@ -1220,8 +1247,7 @@ int main(int argc, char *argv[])
                 pid = fork();
                 if(pid == -1)
                 {
-                    perror("Fork failed\n");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("Fork failed\n");
                 }
 
                 if(pid != 0)
@@ -1248,20 +1274,17 @@ int main(int argc, char *argv[])
 
                     if(mode == ULONG_MAX)
                     {
-                        perror("Mode mask error");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("Mode mask error");
                     }
                 }
 
                 if(mkdir(argv[i+1], mode) == -1)
                 {
-                    perror("mkdir");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("mkdir");
                 }
                 if(chmod(argv[i+1], mode) == -1)
                 {
-                    perror("chmod");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("chmod");
                 }
 
                 i = i + 2;
@@ -1295,15 +1318,13 @@ int main(int argc, char *argv[])
 
                     if(fputs(uid_mapping, fp) == -1)
                     {
-                        perror("File write uid");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("File write uid");
                     }
                     fclose(fp);
                 }
                 else
                 {
-                    perror("Uid mapping error");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("Uid mapping error");
                 }
 
                 ++i;
@@ -1375,34 +1396,29 @@ int main(int argc, char *argv[])
                     // sanity checks from man pivot_root 2 source code
                     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1)
                     {
-                        perror("mount-MS_PRIVATE");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("mount-MS_PRIVATE");
                     }
 
                     // Verify if directory exists
                     if (mount(new_root_dir, new_root_dir, NULL, MS_BIND, NULL) == -1)
                     {
-                        perror("mount-MS_BIND");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("mount-MS_BIND");
                     }
 
 
                     if( chdir(new_root_dir) == -1 )
                     {
-                        perror("chdir");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("chdir");
                     }
 
                     if( pivot_root(".", ".") == -1 )
                     {
-                        perror("pivot_root");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("pivot_root");
                     }
 
                     if( umount2(".", MNT_DETACH) )
                     {
-                        perror("umount2");
-                        exit(EXIT_FAILURE);
+                        PerrorExit("umount2");
                     }
                 }
 
@@ -1561,8 +1577,7 @@ int main(int argc, char *argv[])
                 if( mount(mount_command.source, mount_command.target, mount_command.filesystemtype, mount_command.mountflags, mount_command.data_options) )
                 {
                     fprintf(stderr, "Mount failed : mount(%s, %s, %s, %ld, %s)\n", mount_command.source, mount_command.target, mount_command.filesystemtype, mount_command.mountflags, (char*)mount_command.data_options);
-                    perror("Error");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("Mount error");
                 }
 
                 i = i + 5;
@@ -1574,8 +1589,7 @@ int main(int argc, char *argv[])
                 // Select an AppArmor profile to use when execve gets called
                 if(aa_change_onexec(argv[i+1]) == -1)
                 {
-                    perror("AppArmor change on exec");
-                    exit(EXIT_FAILURE);
+                    PerrorExit("AppArmor change on exec");
                 }
 
                 ++i;
@@ -1667,8 +1681,7 @@ int main(int argc, char *argv[])
         // sanity checks from man pivot_root 2 source code
         if (mount("some_device", "/tmp", "tmpfs", MS_NODEV|MS_NOEXEC|MS_NOSUID|MS_RDONLY, "size=1K,mode=0700") == -1)
         {
-            perror("mount - tmpfs - new default_root");
-            exit(EXIT_FAILURE);
+            PerrorExit("mount - tmpfs - new default_root");
         }
 
         OptionPivotRoot("/tmp");
@@ -1717,15 +1730,13 @@ int main(int argc, char *argv[])
         // see man capabilities 7
         if( prctl(PR_SET_SECUREBITS, SECBIT_NO_SETUID_FIXUP_LOCKED|SECBIT_NOROOT|SECBIT_NOROOT_LOCKED|SECBIT_KEEP_CAPS_LOCKED|SECBIT_NO_CAP_AMBIENT_RAISE|SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED) )
         {
-            perror("Prctl error");
-            exit(EXIT_FAILURE);
+            PerrorExit("Prctl error");
         }
 
         // Drop all ambient capabilities
         if( cap_reset_ambient() == -1 )
         {
-            perror("Cap ambient reset");
-            exit(EXIT_FAILURE);
+            PerrorExit("Cap ambient reset");
         }
 
         // Drop all bound capabilities
@@ -1733,8 +1744,7 @@ int main(int argc, char *argv[])
         {
             if(cap_drop_bound(cap_list[i]) == -1)
             {
-                perror("Cap drop bound");
-                exit(EXIT_FAILURE);
+                PerrorExit("Cap drop bound");
             }
         }
     }
@@ -1779,8 +1789,7 @@ int main(int argc, char *argv[])
     {
         if( aa_change_profile(apparmor_profile) )
         {
-            perror("aa_change_profile error");
-            exit(EXIT_FAILURE);
+            PerrorExit("aa_change_profile error");
         }
     }
 
@@ -1793,8 +1802,7 @@ int main(int argc, char *argv[])
     {
         if( prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) )
         {
-            perror("Prctl error");
-            exit(EXIT_FAILURE);
+            PerrorExit("Prctl error");
         }
     }
 
@@ -1802,8 +1810,7 @@ int main(int argc, char *argv[])
     if( execvp(argv[new_program_index], new_args) == -1 )
     {
         fprintf(stderr, "execvp(%s, ...) \n", argv[new_program_index]);
-        perror("Execvp error");
-        exit(EXIT_FAILURE);
+        PerrorExit("Execvp error");
     }
 
     free(new_args);

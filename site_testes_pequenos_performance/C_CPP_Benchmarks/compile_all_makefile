@@ -1,4 +1,0 @@
-CC=G++
-
-%.exe: $%.cpp
-	$(CC) -o $@ $^ -pipe -static

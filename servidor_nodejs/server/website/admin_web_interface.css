@@ -1,0 +1,138 @@
+body
+{
+    font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: large;
+    color: #ffffff;
+    background-color: #0d0c1a;
+}
+
+a
+{
+    color: #00d7c9;
+}
+
+
+input
+{
+    background-color: #0d0c1a;
+    border-bottom: 5px solid rgb(100, 100, 100);
+    padding-bottom: 0.5%;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+#Search_App
+{
+    width: 90%;
+    font-size: xx-large;
+}
+
+#Search_Results
+{
+    width: 95%;
+    margin-top: 2%;
+    border-radius: 10px;
+    border: 3px solid rgb(100, 100, 100);
+}
+
+.navigation
+{
+    position: fixed;
+    width: 5%;
+    float: left;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: column;
+    /*align-items: center;
+    justify-content: center;*/
+    border-right: 2px solid rgb(100, 100, 100);
+}
+
+.navigation ul
+{
+    list-style: none;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    /*align-items: center;
+    justify-content: center;*/
+}
+
+.navigation ul a
+{
+    height: 7%;
+    margin: 0;
+    padding: 10%;
+    padding-bottom: 35%;
+    padding-top: 35%;
+    border-bottom: 2px solid rgb(100, 100, 100);
+}
+
+.navigation ul a:hover
+{
+    height: 15%;
+    padding: 3%;
+    background-color: #00d7c9;
+}
+
+.navigation ul a img
+{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Separa a parte de entradas da de resultados(respostas) */
+.section
+{
+    float: left;
+    margin-left: 5%;
+    width: 95%;
+}
+
+#input_queries
+{
+    width: 45%;
+    float: left;
+    height: 99vh;
+    overflow-y: scroll;
+}
+
+#results_div
+{
+    width: 45%;
+    float: right;
+    height: 99vh;
+    overflow-y: scroll;
+    background-color: #252525;
+    color: rgb(255, 255, 255);
+    border-radius: 1em;
+}
+
+.Result
+{
+    padding: 0.75em;
+}
+
+/* https://www.w3schools.com/css/css_comments.asp */
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+::-webkit-scrollbar
+{
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+html * /* Esconde para todos os elementos */
+{
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

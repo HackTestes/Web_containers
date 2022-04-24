@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+        <script src="admin_web_interface.js" defer></script>
+        <link rel="stylesheet" href="admin_web_interface.css">
+        <title>Projeto 2</title>
+    </head>
+
+    <body>
+
+        <!-- Alguns valores já estão inseridos para facilitar o uso e testes (value=<valor> ou checked)-->
+
+        <div class="navigation">
+            <ul>
+                <a href="#HOME" id="nav_home"> <img src="home.svg" alt=""> </a>
+                <a href="#SEARCH" id="nav_search"> <img src="search.svg" alt=""> </a>
+                <a href="#SECURITY" id="nav_security"> <img src="security.svg" alt=""> </a>
+                <a href="#DEV" id="nav_dev"> <img src="dev.svg" alt=""> </a>
+            </ul>
+        </div>
+
+        <div class="section" id="home">
+            <h1>Home</h1>
+            <h2>Admin dashboard</h2>
+            <p>This is the admin dashboard for the native web programs. Here you can manage a series of configurations, search, delete apps and even use it for development.</p>
+
+            <h2>Navigation</h2>
+            <p>You can navigate through the several sections using the nav bar at the left. Sections: HOME(current), SEARCH, SECURITY, DEV.</p>
+
+            <h2>Source code</h2>
+            <p>You can the projects's source code here: <a href="https://github.com/HackTestes/Web_containers"> https://github.com/HackTestes/Web_containers </a></p>
+
+            <h2>Author</h2>
+            <p>Caio Gomes Flausino</p>
+        </div>
+
+        <div class="section" id="search">
+            <h1>Search</h1>
+
+            <label for="Search_App"> App name </label><br>
+            <input type="text" name="Search_App" id="Search_App" value='*'><br>
+
+            <div id="Search_Results"></div>
+
+            <br>
+
+            <button id="SearchBtn" >Pesquisar</button>
+        </div>
+
+        <div class="section" id="security">
+            <h1>Security</h1>
+            <p>Some text</p>
+        </div>
+
+        <div class="section" id="dev">
+            <h1>DEV</h1>
+
+            <div id="input_queries">
+                <h1>Pesquisar</h1>
+
+                <label for="Dev_Search_App"> Nome* </label><br>
+                <input type="text" name="Dev_Search_App" id="Dev_Search_App" value='*'><br>
+
+                <br>
+
+                <button id="SearchBtn" >Pesquisar</button>
+
+
+                <h1>Inserir Apps</h1>
+
+                <h3>Informações do desenvolvedor</h3>
+                <label for="Insert_App_Dev_Name"> Nome* </label><br>
+                <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
+
+                <label for="Insert_App_Dev_Home_Page_URL"> Home Page* </label><br>
+                <input type="text" name="Insert_App_Dev_Home_Page_URL" id="Insert_App_Dev_Home_Page_URL" value='http://127.0.0.1:3000'><br>
+
+                <h3>Informações do app</h3>
+                <label for="Insert_App_Name"> Nome* </label><br>
+                <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Test_Web_App_Auth'><br>
+
+                <label for="Insert_App_Origin_URL"> Link de origem (download)* </label><br>
+                <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/TestAppDownload.zip'><br>
+
+                <label for="Insert_App_Hash"> Description </label><br>
+                <input type="text" name="Insert_App_Hash" id="Insert_App_Hash" value='Blah blah blah'><br>
+
+                <br>
+
+                <button id="RegisterAppBtn" >Registar o app</button>
+
+                <h1>Executar app</h1>
+
+                <label for="Execute_App_Name"> Nome* </label><br>
+                <input type="text" name="Execute_App_Name" id="Execute_App_Name" value='Test_Web_App_Auth'><br>
+
+                <label for="Execute_App_Key"> App key </label><br>
+                <input type="text" name="Execute_App_Key" id="Execute_App_Key" value=''><br>
+
+                <label for="Execute_App_Flags"> Flags </label><br>
+                <input type="text" name="Execute_App_Flags" id="Execute_App_Flags" value=''><br>
+
+                <br>
+
+                <button id="ExecuteApp" >Executar Aplicativo</button>
+
+                <h1>*Atualizar dados</h1>
+
+                <input type="radio" id="Update_Table_App" name="Update_Table_Select" value="App" checked>
+                <label for="Update_Table_App">Aplicativo</label><br>
+
+                <input type="radio" id="Update_Table_Developer" name="Update_Table_Select" value="Developer">
+                <label for="Update_Table_Developer">Desenvolvedor</label><br>
+
+                <input type="radio" id="Update_Table_Config" name="Update_Table_Select" value="Config">
+                <label for="Update_Table_Config">Configurações</label><br>
+
+                <label for="Update_Table_Column_Name"> Nome da coluna (diferencia maiúsculas de minúsculas) </label><br>
+                <input type="text" name="Update_Table_Column_Name" id="Update_Table_Column_Name" value='name'><br>
+
+                <label for="Update_Table_Column_Value"> Novo valor </label><br>
+                <input type="text" name="Update_Table_Column_Value" id="Update_Table_Column_Value" value='GIMP Photo Editor'><br>
+
+                <label for="Update_Table_Entry_ID">ID</label><br>
+                <input type="number" id="Update_Table_Entry_ID" name="Update_Table_Entry_ID" min=0 step=1 value=2><br>
+
+                <br>
+
+                <button id="UpdateEntryBtn" >Atualizar dados</button>
+
+                <h1>Deletar Apps, desenvolvedores e configurações</h1>
+
+                <label for="Delete_App"> Nome do app </label><br>
+                <input type="text" name="Delete_App" id="Delete_App" value='Test_app_2'><br>
+
+                <br>
+
+                <button id="DeleteEntryBtn" >Deletar entrada</button>
+
+                <br>
+                <br>
+                <br>
+                <br>
+            </div>
+
+            <div id="results_div">
+                <h1 class="Result">Resposta</h1>
+                <pre class="Result" id="Result"></pre>
+            </div>
+        </div>
+
+    </body>
+</html>

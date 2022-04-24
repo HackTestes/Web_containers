@@ -48,7 +48,7 @@ app.use(express.json());
 
 app.get(`/Admin/${security_settings.admin_token}/`, (req, res) =>
 {
-    res.sendFile( __dirname + '/website/Projeto_2_site.html' );
+    res.sendFile( __dirname + '/website/admin_web_interface.html' );
 });
 
 app.get(`/Admin/${security_settings.admin_token}/:website_resource`, (req, res) =>

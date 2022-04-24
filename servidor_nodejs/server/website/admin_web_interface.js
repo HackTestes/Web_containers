@@ -1,3 +1,29 @@
+// Navigation
+
+function HideAllSections()
+{
+    let all_sections = document.querySelectorAll(".section");
+    for(section of all_sections)
+    {
+        section.style.display = "none";
+    }
+}
+
+function HideAllSectionsExcept(section_execption)
+{
+    HideAllSections();
+    document.querySelector(section_execption).style.display = "";
+}
+
+HideAllSectionsExcept("#search");
+
+document.querySelector("#nav_home").onclick = () => {HideAllSectionsExcept("#home")}
+document.querySelector("#nav_search").onclick = () => {HideAllSectionsExcept("#search")}
+document.querySelector("#nav_security").onclick = () => {HideAllSectionsExcept("#security")}
+document.querySelector("#nav_dev").onclick = () => {HideAllSectionsExcept("#dev")}
+
+// -------------------------------------------------------------------------------------------------------------------------- //
+
 my_result_div = document.querySelector("#Result");
 
 // Escreve a mensagem no campo apropriado
@@ -14,9 +40,9 @@ function WriteMessage( data )
 }
 
 // Realiza uma pesquisa no banco
-document.querySelector("#SearchBtn").onclick = () =>
+document.querySelector("#Dev_SearchBtn").onclick = () =>
 {
-    let app_name = document.querySelector("#Search_App").value;
+    let app_name = document.querySelector("#Dev_Search_App").value;
 
     $.ajax
     ({
@@ -76,37 +102,6 @@ document.querySelector("#ExecuteApp").onclick = () =>
         success: (data) => { WriteMessage(data) }
     });
 }
-
-// Insere configurações
-document.querySelector("#InsertConfigBtn").onclick = () =>
-{
-    let max_memory_mib = document.querySelector("#Insert_Config_Max_Memory").value;
-    let max_swap_memory_mib = document.querySelector("#Insert_Config_Max_Swap_Memory").value;
-    let label = document.querySelector("#Insert_Config_Label").value;
-
-    let json_data = 
-    {
-        "privileged": document.querySelector('input[id="Insert_Config_Privileged"]').checked,
-        "read_only_filesystem": document.querySelector('input[id="Insert_Config_RO_FS"]').checked,
-        "network_access": document.querySelector('input[id="Insert_Config_Network"]').checked,
-        "gpu_access": document.querySelector('input[id="Insert_Config_GPU"]').checked,
-        "UID": document.querySelector("#Insert_Config_UID").value,
-        "GID": document.querySelector("#Insert_Config_GID").value,
-        "max_memory_mib": (max_memory_mib == "") ? null : max_memory_mib, // Se nulo, envie o valor null
-        "max_swap_memory_mib": (max_swap_memory_mib == "") ? null : max_swap_memory_mib, // Se nulo, envie o valor null
-        "label": (label == "") ? null : label // Se nulo, envie o valor null
-    }
-
-    $.ajax({
-        type: "post",
-        url: `http://127.0.0.1:3000/InsertConfig`,
-        data: JSON.stringify( json_data ),
-        contentType: 'application/json',
-        dataType: 'json',
-        success: (data) => { WriteMessage(data) }
-    });
-}
-
 
 // Atualiza uma entrada
 document.querySelector("#UpdateEntryBtn").onclick = () =>
