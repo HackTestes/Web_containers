@@ -128,7 +128,7 @@ app.post('/RegisterApp', async (req, res) =>
 
         try{await fs.promises.mkdir(`./apps/${app_name}/bin`);} catch(error) {if(error.code == 'EEXIST'){console.log("Bin already exists" + error);}};
 
-        await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body)/*, (err) => { if (err) throw err; }*/);
+        await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body));
 
         await protocol[req.body.app.origin_url.split(':')[0]].get(req.body.app.origin_url, resp => resp.pipe( fs.createWriteStream(`./apps/${app_name}/${ req.body.app.origin_url.split('/').pop() }`) ));
 
@@ -166,8 +166,8 @@ app.post('/Execute/', async (req, res) =>
                 // all file are build in the tmpfs folder and only the binary is stored on the host
                 // tmpfs limit to avoid zip bombs
                 //await ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
-                await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all-pid`, `--fork`, `--uid`, `1000`,`--gid`, `1000`, `--apparmor-profile-immediate`, `compilation_security_profile`, `--mount`, `tmpfs_device`, `/tmp`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--mount`, `tmpfs_device_src`, `${__dirname}/apps/${req.body.app_name}/app_source`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--no-seccomp`, `/media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh`, `${__dirname}/apps/${req.body.app_name}` ]);
-                //console.log(stdout);
+                let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all-pid`, `--fork`, `--host-filesystem`, `--uid`, `1000`,`--gid`, `1000`, `--apparmor-profile-immediate`, `compilation_security_profile`, `--mount`, `tmpfs_device`, `/tmp`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--mount`, `tmpfs_device_src`, `${__dirname}/apps/${req.body.app_name}/app_source`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--no-seccomp`, `/media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh`, `${__dirname}/apps/${req.body.app_name}` ]);
+                //console.log(stdout, stderr);
             }
 
             let app_to_execute = `${__dirname}/apps/${req.body.app_name}/bin/AppExecutable`;
@@ -224,20 +224,41 @@ app.get('/GetApps/:pattern', async (req, res) =>
             let files = await fs.promises.readdir("./apps/");
             let serach_result;
 
+            // Shows all files
             if(req.params.pattern == '*')
             {
                 serach_result = files
             }
+
+            // Filter the results
             else
             {
                 let search_pattern = new RegExp(`${req.params.pattern}`);
-                serach_result = files.filter( (array_item) => { if(search_pattern.test(array_item)) {return array_item} } );
+                serach_result = files.filter( (file) => { if(search_pattern.test(file)) {return file} } );
             }
+
+            // Return file JSON
+            // code
+            let json_result = [];
+            for(file of serach_result)
+            {
+                try{ json_result.push( JSON.parse(await fs.promises.readFile(`./apps/${file}/${file}.json`)) ); }
+
+                catch(error)
+                {
+                    if(error.code == 'ENOENT' || error.code == 'ENOTDIR')
+                    {
+                        json_result.push({app: {name : file, description: "empty"}});
+                    }
+                }
+            }
+
 
             res.json
             ({
                 Status: 'OK',
                 Serach_Result : serach_result,
+                JSON_Result : json_result,
                 All_apps : files,
                 Search_pattern : req.params.pattern
             });

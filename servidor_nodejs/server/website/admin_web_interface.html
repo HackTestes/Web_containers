@@ -19,6 +19,7 @@
                 <a href="#HOME" id="nav_home"> <img src="home.svg" alt=""> </a>
                 <a href="#SEARCH" id="nav_search"> <img src="search.svg" alt=""> </a>
                 <a href="#SECURITY" id="nav_security"> <img src="security.svg" alt=""> </a>
+                <a href="#CONFIG" id="nav_config"> <img src="config.svg" alt=""> </a>
                 <a href="#DEV" id="nav_dev"> <img src="dev.svg" alt=""> </a>
             </ul>
         </div>
@@ -41,14 +42,12 @@
         <div class="section" id="search">
             <h1>Search</h1>
 
-            <label for="Search_App"> App name </label><br>
-            <input type="text" name="Search_App" id="Search_App" value='*'><br>
+            <p>Use the special character '*' to show all apps installed</p>
+
+            <label class="Search" for="Search_App"> App name </label><br>
+            <input class="Search" type="text" name="Search_App" id="Search_App" value='*'><br>
 
             <div id="Search_Results"></div>
-
-            <br>
-
-            <button id="SearchBtn" >Pesquisar</button>
         </div>
 
         <div class="section" id="security">
@@ -56,8 +55,13 @@
             <p>Some text</p>
         </div>
 
+        <div class="section" id="configuration">
+            <h1>Configuration</h1>
+            <p>Some text</p>
+        </div>
+
         <div class="section" id="dev">
-            <h1>DEV</h1>
+            <h1>Developer Settings</h1>
 
             <div id="input_queries">
                 <h1>Pesquisar</h1>
@@ -67,27 +71,25 @@
 
                 <br>
 
-                <button id="SearchBtn" >Pesquisar</button>
+                <button id="Dev_SearchBtn" >Pesquisar</button>
 
 
                 <h1>Inserir Apps</h1>
 
                 <h3>Informações do desenvolvedor</h3>
-                <label for="Insert_App_Dev_Name"> Nome* </label><br>
-                <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
-
-                <label for="Insert_App_Dev_Home_Page_URL"> Home Page* </label><br>
-                <input type="text" name="Insert_App_Dev_Home_Page_URL" id="Insert_App_Dev_Home_Page_URL" value='http://127.0.0.1:3000'><br>
 
                 <h3>Informações do app</h3>
-                <label for="Insert_App_Name"> Nome* </label><br>
+                <label for="Insert_App_Name"> Nome do app </label><br>
                 <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Test_Web_App_Auth'><br>
+
+                <label for="Insert_App_Dev_Name"> Nome do desenvolvedor </label><br>
+                <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
 
                 <label for="Insert_App_Origin_URL"> Link de origem (download)* </label><br>
                 <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/TestAppDownload.zip'><br>
 
-                <label for="Insert_App_Hash"> Description </label><br>
-                <input type="text" name="Insert_App_Hash" id="Insert_App_Hash" value='Blah blah blah'><br>
+                <label for="Insert_App_Description"> Description </label><br>
+                <input type="text" name="Insert_App_Description" id="Insert_App_Description" value='This is just a test program installed locally in my machine.'><br>
 
                 <br>
 
