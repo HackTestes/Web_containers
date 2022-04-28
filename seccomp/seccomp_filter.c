@@ -776,6 +776,12 @@ const cap_value_t cap_list[] =
     CAP_WAKE_ALARM
 };
 
+void PerrorExit(char* error_massage)
+{
+    perror(error_massage);
+    exit(EXIT_FAILURE);
+}
+
 struct MountCommand
 {
     char* source;
@@ -990,41 +996,30 @@ void OptionPivotRoot(char* new_root_dir)
     // sanity checks from man pivot_root 2 source code
     if (mount(NULL, "/", NULL, MS_REC | MS_PRIVATE, NULL) == -1)
     {
-        perror("mount-MS_PRIVATE");
-        exit(EXIT_FAILURE);
+        PerrorExit("mount-MS_PRIVATE");
     }
 
     // Verify if directory exists
     if (mount(new_root_dir, new_root_dir, NULL, MS_BIND, NULL) == -1)
     {
-        perror("mount-MS_BIND");
-        exit(EXIT_FAILURE);
+        PerrorExit("mount-MS_BIND");
     }
 
 
     if( chdir(new_root_dir) == -1 )
     {
-        perror("chdir");
-        exit(EXIT_FAILURE);
+        PerrorExit("chdir");
     }
 
     if( pivot_root(".", ".") == -1 )
     {
-        perror("pivot_root");
-        exit(EXIT_FAILURE);
+        PerrorExit("pivot_root");
     }
 
     if( umount2(".", MNT_DETACH) )
     {
-        perror("umount2");
-        exit(EXIT_FAILURE);
+        PerrorExit("umount2");
     }
-}
-
-void PerrorExit(char* error_massage)
-{
-    perror(error_massage);
-    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char *argv[])
@@ -1146,7 +1141,7 @@ int main(int argc, char *argv[])
 
                 "--apparmor-profile-exec <PROFILE> \n\t applies an AppArmor profile when execve is called \n\n"
 
-                "--apparmor-profile-immediate <PROFILE> \n\t applies an AppArmor right before no_new_privs is set \n\n"
+                "--apparmor-profile-immediate <PROFILE> \n\t applies an AppArmor right before no_new_privs is set \n\n";
 
                 printf("%s", help_text);
 
@@ -1676,6 +1671,8 @@ int main(int argc, char *argv[])
     // Isolate host's filesystem by default
     if(pivot_root_enabled == false && use_host_filesystem == false)
     {
+
+        PerrorExit("No isolation type selected");
         // see https://man7.org/linux/man-pages/man2/pivot_root.2.html
 
         // sanity checks from man pivot_root 2 source code
@@ -1818,5 +1815,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-// /usr/bin/time -v strace -ve wait4 [comando]

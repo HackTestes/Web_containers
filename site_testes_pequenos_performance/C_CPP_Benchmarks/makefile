@@ -1,3 +1,5 @@
+# Builds the C++ tests
+
 CC=g++
 
 CPP = $(wildcard *.cpp)

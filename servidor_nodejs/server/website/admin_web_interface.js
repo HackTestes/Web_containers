@@ -15,12 +15,11 @@ function HideAllSectionsExcept(section_execption)
     document.querySelector(section_execption).style.display = "";
 }
 
-HideAllSectionsExcept("#search");
+HideAllSectionsExcept("#home");
 
 document.querySelector("#nav_home").onclick = () => {HideAllSectionsExcept("#home")}
 document.querySelector("#nav_search").onclick = () => {HideAllSectionsExcept("#search")}
 document.querySelector("#nav_security").onclick = () => {HideAllSectionsExcept("#security")}
-document.querySelector("#nav_config").onclick = () => {HideAllSectionsExcept("#configuration")}
 document.querySelector("#nav_dev").onclick = () => {HideAllSectionsExcept("#dev")}
 
 // -------------------------------------------------------------------------------------------------------------------------- //

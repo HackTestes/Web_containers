@@ -348,5 +348,5 @@ app.listen(port_listen, () =>
     console.log(`Server: OK \nPort: ${port_listen} \n`);
     console.log(`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/\n`);
 
-    ExecFileAsync('chromium', ['--incognito', `http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]);
+    ExecFileAsync('chromium', ['--incognito', '--new-window', `http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]);
 });
