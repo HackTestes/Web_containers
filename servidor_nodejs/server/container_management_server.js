@@ -14,11 +14,28 @@ const ExecFileAsync = util.promisify(child_process.execFile);
 const ExecAsync = util.promisify(child_process.exec);
 const SpawnAsync = util.promisify(child_process.spawn);
 
+// !todo! Validate json data type and schema
+
 // https://stackoverflow.com/questions/58642368/how-to-download-a-file-with-nodejs
 
 // https://developer.ibm.com/articles/avoiding-arbitrary-code-execution-vulnerabilities-when-using-nodejs-child-process-apis/
 
+// This object stores persistent data about this program
+let global_settings = fs.readFileSync('./settings.json')
+global_settings = JSON.parse(global_settings);
+
 console.log("Working dir: " + process.cwd());
+
+// Stores app's names with specific permissions
+// app_name = permissions_set
+// Overview: Map( "app_name" = Set{install, execute, update} )
+//
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+// https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Set
+let security_permissions = new Map();
+let permissions_requests = new Map();
+
+security_permissions.set('Manual_Test', new Set(['register', 'execute']))
 
 // Security settings
 let security_settings = 
@@ -27,9 +44,6 @@ let security_settings =
     search_characters : /^[a-zA-Z0-9-_\*]*$/,
     admin_token: crypto.randomBytes(48).toString('hex')
 };
-
-let app_key = {};
-let allowed_apps = {};
 
 // ----------------------------------------------------------------------------------------------------------
 
@@ -43,8 +57,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Cache de teste
-//let file = fs.readFileSync("./?????");
+
+app.get('/TestAppDownload.zip', async (rew, res) =>
+{
+    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/Test_app/Test_app.zip');
+
+    res.send(my_test_app);
+});
 
 app.get(`/Admin/${security_settings.admin_token}/`, (req, res) =>
 {
@@ -56,90 +75,174 @@ app.get(`/Admin/${security_settings.admin_token}/:website_resource`, (req, res) 
     res.sendFile( __dirname + `/website/${req.params.website_resource}` );
 });
 
-
-app.post('/TestAPI', (req, res) =>
+// Just an idea against URL/network sniffing*
+// Observation: this server is not encrypted!
+app.get(`/Admin/${security_settings.admin_token}/GetNonURLToken`, (req, res) =>
 {
-    if(app_key[req.body.app_name] == req.body.app_key)
+    res.send( crypto.randomBytes(48).toString('hex') );
+});
+
+app.post('/Admin/RequestAppPermissions', async (req, res) =>
+{
+    // Verify credentials
+    if(req.body.admin.token == security_settings.admin_token)
     {
+
+        let permissions_requests_array = [];
+        permissions_requests.forEach( (value, key) => { permissions_requests_array.push([key, Array.from(value)]) } )
+
+        let security_permissions_array = [];
+        security_permissions.forEach( (value, key) => { security_permissions_array.push([key, Array.from(value)]) } )
+
+        //console.log(permissions_requests_array, security_permissions_array);
+
         res.json
         ({
-            Status: "OK"
-            //Req: req
+            Status: 'OK',
+            Permissions_requests: permissions_requests_array,
+            Current_Permissions: security_permissions_array
         });
-
-       // console.log(req, "\n\n", req.ip);
     }
+
     else
     {
         res.json
         ({
-            Status: "Invalid key",
-            Key_recived: req.body.app_key
-            //Req: req
+            Status: 'ERROR',
+            Description: 'Incorrect admin token',
+            Token: req.body.admin.token
         });
-
-        console.log(req.body.app_key);
-        console.log(app_key);
-        console.log(app_key[req.body.app_name] == req.body.app_key);
     }
 });
 
-app.get('/TestAppDownload.zip', async (rew, res) =>
+app.post('/Admin/SetAppPermissions', async (req, res) =>
 {
-    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/Test_app/Test_app.zip');
+    // Verify credentials
+    if(req.body.admin.token == security_settings.admin_token)
+    {
+        try
+        {
+            // Configure permissions - more or less permissions
+            if(req.body.admin.security_operation == "permissions_exact") {security_permissions.set(req.body.app.name, Set(req.body.app.permissions));}
 
-    res.send(my_test_app);
+            // Add permissions
+            if(req.body.admin.security_operation == "permissions_add") {security_settings.set( req.body.app.name, Set(req.body.app.permissions, security_settings.get(req.body.app.name)) );}
+
+            // Delete all permissions
+            if(req.body.admin.security_operation == "permissions_revoke_all") {security_permissions.delete(req.body.app.name);}
+
+            res.json
+            ({
+                Status: 'OK',
+                Permission: security_settings.get(req.body.app.name)
+            });
+        }
+        catch(error)
+        {
+            res.json
+            ({
+                Status: 'ERROR',
+                Description: 'Internal error',
+                Log: error.toString()
+            });
+        }
+    }
+
+    else
+    {
+        res.json
+        ({
+            Status: 'ERROR',
+            Description: 'Incorrect admin token'
+        });
+    }
+});
+
+app.post('/RequestAppPermissions', async (req, res) =>
+{
+    // Input validation
+    if(security_settings.safe_characters.test(req.body.app.name))
+    {
+        // permissions must be an array
+        permissions_requests.set(req.body.app.name, new Set(req.body.app.permissions))
+
+        res.json
+        ({
+            Status: 'OK',
+            Req: req.body
+        })
+    }
+
+    else
+    {
+        res.json
+        ({
+            Status: 'ERROR',
+            Description: "Unsafe characters"
+        });
+    }
 });
 
 
-// Registra o aplicativo
+// Register the app
 app.post('/RegisterApp', async (req, res) =>
 {
-    let protocol =
+    //if(GetSecurityPermission(req.body.app.name, 'register'))
+    if(security_permissions.has(req.body.app.name) && security_permissions.get(req.body.app.name).has('register'))
     {
-        'http': http,
-        'https': https
-    }
-    let app_name;
-
-    try
-    {
-        app_name = req.body.app.name;
-        app_name = app_name.replace(/\/|\\| /g, '_');
-
-        app_key[app_name] = crypto.randomBytes(48).toString('hex');
-
-        await fs.promises.mkdir(`./apps/${app_name}`);
-    }
-    catch(error)
-    {
-        if(error.code == 'EEXIST')
+        let protocol =
         {
-            console.log("App already exists");
+            'http': http,
+            'https': https
         }
-        else
+        let app_name;
+
+        try
         {
-            throw error;
+            app_name = req.body.app.name;
+            app_name = app_name.replace(/\/|\\| /g, '_');
+
+            await fs.promises.mkdir(`./apps/${app_name}`);
         }
+        catch(error)
+        {
+            if(error.code == 'EEXIST')
+            {
+                console.log("App already exists");
+            }
+            else
+            {
+                throw error;
+            }
+        }
+
+            // app_source is a mount point for tmpfs
+            try{await fs.promises.mkdir(`./apps/${app_name}/app_source`);} catch(error) {if(error.code == 'EEXIST'){console.log("App source already exists" + error);}};
+
+            try{await fs.promises.mkdir(`./apps/${app_name}/bin`);} catch(error) {if(error.code == 'EEXIST'){console.log("Bin already exists" + error);}};
+
+            await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body));
+
+            await protocol[req.body.app.origin_url.split(':')[0]].get(req.body.app.origin_url, resp => resp.pipe( fs.createWriteStream(`./apps/${app_name}/${ req.body.app.origin_url.split('/').pop() }`) ));
+
+        res.json
+        ({
+            Status: "OK",
+            Req: req.body
+        });
+
+        console.log( req.body, app_name, req.body.app.origin_url.split('/').pop() );
     }
 
-        // app_source is a mount point for tmpfs
-        try{await fs.promises.mkdir(`./apps/${app_name}/app_source`);} catch(error) {if(error.code == 'EEXIST'){console.log("App source already exists" + error);}};
-
-        try{await fs.promises.mkdir(`./apps/${app_name}/bin`);} catch(error) {if(error.code == 'EEXIST'){console.log("Bin already exists" + error);}};
-
-        await fs.promises.writeFile(`./apps/${app_name}/${app_name}.json`, JSON.stringify(req.body));
-
-        await protocol[req.body.app.origin_url.split(':')[0]].get(req.body.app.origin_url, resp => resp.pipe( fs.createWriteStream(`./apps/${app_name}/${ req.body.app.origin_url.split('/').pop() }`) ));
-
-    res.json
-    ({
-        Status: "OK",
-        Req: req.body,
-        App_key: app_key[app_name]
-    });
-
-    console.log( req.body, app_name, req.body.app.origin_url.split('/').pop() );
+    else
+    {
+        res.json
+        ({
+            Status: "ERROR_SECURITY",
+            Description: 'Permission to register denied. Request added',
+            Req: req.body
+        });
+    }
 });
 
 // ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
@@ -149,12 +252,12 @@ let seccomp_exe = "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_secc
 let seccomp_allowed_syscalls = "execve,brk,arch_prctl,access,openat,newfstatat,mmap,close,read,pread64,mprotect,set_tid_address,set_robust_list,prlimit64,munmap,getrandom,write,exit_group,exit,fstat,readlink,uname,access";
 let apparmor_profile = '/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**';
 
-// Executa um aplicativo
+// Execute an app
 app.post('/Execute/', async (req, res) =>
 {
     // Input validation
     //console.log(`${req.body.app_name} : ${security_settings.safe_characters.test(req.body.app_name)}`);
-    if( security_settings.safe_characters.test(req.body.app_name) && app_key[req.body.app_name] == req.body.app_key )
+    if( security_settings.safe_characters.test(req.body.app_name) && security_permissions.has(req.body.app_name) && security_permissions.get(req.body.app_name).has('execute'))
     {
         try
         {
@@ -165,16 +268,14 @@ app.post('/Execute/', async (req, res) =>
             {
                 // all file are build in the tmpfs folder and only the binary is stored on the host
                 // tmpfs limit to avoid zip bombs
-                //await ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
                 let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all-pid`, `--fork`, `--host-filesystem`, `--uid`, `1000`,`--gid`, `1000`, `--apparmor-profile-immediate`, `compilation_security_profile`, `--mount`, `tmpfs_device`, `/tmp`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--mount`, `tmpfs_device_src`, `${__dirname}/apps/${req.body.app_name}/app_source`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--no-seccomp`, `/media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh`, `${__dirname}/apps/${req.body.app_name}` ]);
                 //console.log(stdout, stderr);
             }
 
             let app_to_execute = `${__dirname}/apps/${req.body.app_name}/bin/AppExecutable`;
 
-
             // Execution
-            let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all`, `--fork`, `--uid`, `1000`,`--gid`, `1000`, '--no-seccomp', `--seccomp-syscalls`, `${seccomp_allowed_syscalls}`, `--pivot-root`, `${__dirname}/apps/${req.body.app_name}/bin`, `/AppExecutable`]);
+            let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all`, `--fork`, `--uid`, `1000`,`--gid`, `1000`, '--no-seccomp', `--seccomp-syscalls`, `${seccomp_allowed_syscalls}`, `--pivot-root`, `${__dirname}/apps/${req.body.app_name}/bin`, `/AppExecutable`].concat(req.body.flags.split(' ')));
 
             res.json
             ({
@@ -208,7 +309,7 @@ app.post('/Execute/', async (req, res) =>
         res.json
         ({
             Status: 'ERROR',
-            Description: "Invalid key or app or invalid chracters"
+            Description: "Invalid characters or no permission to execute"
         });
     }
 });
@@ -292,19 +393,11 @@ app.post('/InsertConfig', (req, res) =>
 {
 
 });
-
-
-// Atualiza uma entrada com um novo valor. Deve ser especificado uma tabela e uma coluna - PODE SER FEITO DIRETAMENTE NO RegisterApp
-app.patch('/UpdateEntry', (req, res) =>
-{
-
-});
 */
 
 app.delete('/Delete', (req, res) =>
 {
     // Input validation
-    //console.log(`${req.body.app_name} : ${security_settings.safe_characters.test(req.body.app_name)}`);
     if( security_settings.safe_characters.test(req.body.app_name) )
     {
         try
@@ -335,7 +428,7 @@ app.delete('/Delete', (req, res) =>
         res.json
         ({
             Status: 'ERROR',
-            Description: error.toString()
+            Description: 'Security error'
         });
     }
 });
@@ -348,5 +441,7 @@ app.listen(port_listen, () =>
     console.log(`Server: OK \nPort: ${port_listen} \n`);
     console.log(`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/\n`);
 
-    ExecFileAsync('chromium', ['--incognito', '--new-window', `http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]);
+    let browser_args_copy = global_settings.browser_and_args;
+
+    ExecFileAsync( browser_args_copy.shift(), browser_args_copy.concat([`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]) );
 });

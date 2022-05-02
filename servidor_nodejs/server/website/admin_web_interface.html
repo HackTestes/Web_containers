@@ -51,36 +51,47 @@
 
         <div class="section" id="security">
             <h1>Security</h1>
-            <button>Reset current securoty settings</button>
-            <button>Save current securoty settings</button>
+
+            <pre id="Security_Requests"></pre>
+            <pre id="Current_Security_Permissions"></pre>
+            <button>Reset current security settings</button>
+            <button>Save current security settings</button>
         </div>
 
         <div class="section" id="dev">
             <h1>Developer Settings</h1>
 
             <div id="input_queries">
-                <h1>Pesquisar</h1>
+                <h2>Search</h2>
 
-                <label for="Dev_Search_App"> Nome* </label><br>
+                <label for="Dev_Search_App"> App name* </label><br>
                 <input type="text" name="Dev_Search_App" id="Dev_Search_App" value='*'><br>
 
                 <br>
 
                 <button id="Dev_SearchBtn" >Pesquisar</button>
 
+                <h2>Request Permission</h2>
 
-                <h1>Inserir Apps</h1>
+                <label for="Security_Request_App_Name"> App name </label><br>
+                <input type="text" name="Security_Request_App_Name" id="Security_Request_App_Name" value='Test_Web_App_Auth'><br>
 
-                <h3>Informações do desenvolvedor</h3>
+                <label for="Security_Request_Permissions"> Permissions </label><br>
+                <input type="text" name="Security_Request_Permissions" id="Security_Request_Permissions" value=''><br>
 
-                <h3>Informações do app</h3>
-                <label for="Insert_App_Name"> Nome do app </label><br>
+                <br>
+
+                <button id="RequestPermissionAppBtn" >Request</button>
+
+                <h2>Add Apps</h2>
+
+                <label for="Insert_App_Name"> App name </label><br>
                 <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Test_Web_App_Auth'><br>
 
-                <label for="Insert_App_Dev_Name"> Nome do desenvolvedor </label><br>
+                <label for="Insert_App_Dev_Name"> Developer name </label><br>
                 <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
 
-                <label for="Insert_App_Origin_URL"> Link de origem (download)* </label><br>
+                <label for="Insert_App_Origin_URL"> Origin URL (download)* </label><br>
                 <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/TestAppDownload.zip'><br>
 
                 <label for="Insert_App_Description"> Description </label><br>
@@ -88,55 +99,28 @@
 
                 <br>
 
-                <button id="RegisterAppBtn" >Registar o app</button>
+                <button id="RegisterAppBtn" >Register</button>
 
-                <h1>Executar app</h1>
+                <h2>Execute app</h2>
 
-                <label for="Execute_App_Name"> Nome* </label><br>
+                <label for="Execute_App_Name"> App name* </label><br>
                 <input type="text" name="Execute_App_Name" id="Execute_App_Name" value='Test_Web_App_Auth'><br>
-
-                <label for="Execute_App_Key"> App key </label><br>
-                <input type="text" name="Execute_App_Key" id="Execute_App_Key" value=''><br>
 
                 <label for="Execute_App_Flags"> Flags </label><br>
                 <input type="text" name="Execute_App_Flags" id="Execute_App_Flags" value=''><br>
 
                 <br>
 
-                <button id="ExecuteApp" >Executar Aplicativo</button>
+                <button id="ExecuteApp" >Execute</button>
 
-                <h1>*Atualizar dados</h1>
+                <h2>Delete Apps</h2>
 
-                <input type="radio" id="Update_Table_App" name="Update_Table_Select" value="App" checked>
-                <label for="Update_Table_App">Aplicativo</label><br>
-
-                <input type="radio" id="Update_Table_Developer" name="Update_Table_Select" value="Developer">
-                <label for="Update_Table_Developer">Desenvolvedor</label><br>
-
-                <input type="radio" id="Update_Table_Config" name="Update_Table_Select" value="Config">
-                <label for="Update_Table_Config">Configurações</label><br>
-
-                <label for="Update_Table_Column_Name"> Nome da coluna (diferencia maiúsculas de minúsculas) </label><br>
-                <input type="text" name="Update_Table_Column_Name" id="Update_Table_Column_Name" value='name'><br>
-
-                <label for="Update_Table_Column_Value"> Novo valor </label><br>
-                <input type="text" name="Update_Table_Column_Value" id="Update_Table_Column_Value" value='GIMP Photo Editor'><br>
-
-                <label for="Update_Table_Entry_ID">ID</label><br>
-                <input type="number" id="Update_Table_Entry_ID" name="Update_Table_Entry_ID" min=0 step=1 value=2><br>
-
-                <br>
-
-                <button id="UpdateEntryBtn" >Atualizar dados</button>
-
-                <h1>Deletar Apps, desenvolvedores e configurações</h1>
-
-                <label for="Delete_App"> Nome do app </label><br>
+                <label for="Delete_App"> App name </label><br>
                 <input type="text" name="Delete_App" id="Delete_App" value='Test_app_2'><br>
 
                 <br>
 
-                <button id="DeleteEntryBtn" >Deletar entrada</button>
+                <button id="DeleteEntryBtn" >Delete</button>
 
                 <br>
                 <br>
@@ -145,7 +129,7 @@
             </div>
 
             <div id="results_div">
-                <h1 class="Result">Resposta</h1>
+                <h2 class="Result">Response</h2>
                 <pre class="Result" id="Result"></pre>
             </div>
         </div>
