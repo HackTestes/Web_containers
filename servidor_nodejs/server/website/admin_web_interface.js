@@ -1,5 +1,4 @@
 
-
 function WriteMessageOnDiv( data, html_id)
 {
     console.log(data);
@@ -85,6 +84,47 @@ document.querySelector("#Search_App").onkeyup = (key_press) =>
 // -------------------------------------------------------------------------------------------------------------------------- //
 // Security section
 
+let last_response = '';
+
+function WriteOnChange(json, html_id)
+{
+    let stringified_json = JSON.stringify(json);
+
+    let html_output_total = '';
+    let html_output_requests = '';
+    let html_output_permissions = '';
+
+    for(request of json.Permissions_requests)
+    {
+        let app_name = request[0];
+        let permissions_string = request[1].toString();
+
+        permissions_string == ''? permissions_string = 'none': permissions_string;
+
+        html_output_requests += `<div id=Security_Request_${app_name} >\n` +
+                                `<h3>${app_name}</h3> \n ` +
+                                `<p>Requested permissions : ${permissions_string}</p> \n` +
+                                `<input type = "checkbox" class="Permisson Permission-${app_name}" name="execute" value="execute">` +
+                                `<label for = "execute"> Execute </ label> </br>\n` +
+                                `<input type = "checkbox" class="Permisson Permission-${app_name}" name="register" value="register">` +
+                                `<label for = "register"> Register </ label> </br>\n` +
+                                `<input type = "checkbox" class="Permisson Permission-${app_name}" name="update" value="update">` +
+                                `<label for = "update"> Update </ label> </br>\n` +
+                                `<button id="Security_Allow-${app_name}" class="Security_Allow" >ALLOW</button>` +
+                                `<button id="Security_Deny-${app_name}" class="Security_Allow" >DENY</button>` +
+                                `</div> <hr/>\n\n`;
+    }
+
+    if(last_response != stringified_json)
+    {
+        last_response = stringified_json;
+        document.querySelector(html_id).innerHTML = html_output_requests;
+        //WriteMessageOnDiv(json, html_id);
+
+        console.log(stringified_json);
+    }
+}
+
 function ReadSecurityPermissions()
 {
     let json_data = 
@@ -109,7 +149,7 @@ function ReadSecurityPermissions()
         data: JSON.stringify( json_data ),
         contentType: 'application/json',
         dataType: 'json',
-        success: (data) => { WriteMessageOnDiv(data, '#Security_Requests') }
+        success: (data) => { WriteOnChange(data, '#Security_Requests') }
     });
 }
 
@@ -153,7 +193,7 @@ document.querySelector("#RequestPermissionAppBtn").onclick = () =>
     {
         "app":
         {
-            "nameeee": document.querySelector("#Security_Request_App_Name").value,
+            "name": document.querySelector("#Security_Request_App_Name").value,
             "permissions": document.querySelector("#Security_Request_Permissions").value.split(' ')
         }
     }
