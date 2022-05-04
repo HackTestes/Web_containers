@@ -33,9 +33,10 @@ console.log("Working dir: " + process.cwd());
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 // https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Global_Objects/Set
 let security_permissions = new Map();
+global_settings.security_permissions.forEach( (value) => { security_permissions.set(value[0], new Set(value[1])) } );
+
 let permissions_requests = new Map();
 
-security_permissions.set('Manual_Test', new Set(['register', 'execute']))
 
 // Security settings
 let security_settings = 
@@ -60,7 +61,7 @@ app.use(express.json());
 
 app.get('/TestAppDownload.zip', async (rew, res) =>
 {
-    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/Test_app/Test_app.zip');
+    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/Test_app.zip');
 
     res.send(my_test_app);
 });
@@ -77,9 +78,68 @@ app.get(`/Admin/${security_settings.admin_token}/:website_resource`, (req, res) 
 
 // Just an idea against URL/network sniffing*
 // Observation: this server is not encrypted!
+/*
 app.get(`/Admin/${security_settings.admin_token}/GetNonURLToken`, (req, res) =>
 {
     res.send( crypto.randomBytes(48).toString('hex') );
+});
+*/
+
+app.post('/Admin/PersistentSettings', async (req, res) =>
+{
+    // Verify credentials
+    if(req.body.admin.token == security_settings.admin_token)
+    {
+        console.log(JSON.stringify(global_settings));
+
+        if(req.body.admin.operation == 'reset_permissions' || false)
+        {
+            security_permissions = new Map();
+            global_settings.security_permissions = [];
+            await fs.promises.writeFile(`./settings.json`, JSON.stringify(global_settings));
+
+            res.json
+            ({
+                Staus: 'OK',
+                Description: 'JSON settings reseted and saved with success',
+                Settings: JSON.stringify(global_settings)
+            });
+        }
+
+        else if (req.body.admin.operation == 'save_current_permissions' || false)
+        {
+            global_settings.security_permissions = [];
+            security_permissions.forEach( (value, key) => { global_settings.security_permissions.push([key, Array.from(value)]) } );
+
+            await fs.promises.writeFile(`./settings.json`, JSON.stringify(global_settings));
+
+            res.json
+            ({
+                Staus: 'OK',
+                Description: 'JSON settings saved with success',
+                Settings: JSON.stringify(global_settings)
+            });
+        }
+
+        else
+        {
+            res.json
+            ({
+                Staus: 'ERROR',
+                Description: 'Invalid operation'
+            });
+        }
+    }
+
+    else
+    {
+        res.json
+        ({
+            Status: 'ERROR',
+            Description: 'Incorrect admin token',
+            Token: req.body.admin.token
+        });
+    }
 });
 
 app.post('/Admin/RequestAppPermissions', async (req, res) =>
@@ -123,20 +183,53 @@ app.post('/Admin/SetAppPermissions', async (req, res) =>
         try
         {
             // Configure permissions - more or less permissions
-            if(req.body.admin.security_operation == "permissions_exact") {security_permissions.set(req.body.app.name, Set(req.body.app.permissions));}
+            if(req.body.admin.security_operation == "permissions_add")
+            {
+                // If exists, just add
+                if(security_permissions.has(req.body.app.name))
+                {
+                    req.body.app.permissions.forEach( (value) => {security_permissions.get(req.body.app.name).add(value)} );
+                    permissions_requests.delete(req.body.app.name);
+                }
 
-            // Add permissions
-            if(req.body.admin.security_operation == "permissions_add") {security_settings.set( req.body.app.name, Set(req.body.app.permissions, security_settings.get(req.body.app.name)) );}
+                // If not, set the exact permissions
+                else
+                {
+                    security_permissions.set(req.body.app.name, new Set(req.body.app.permissions));
+                    permissions_requests.delete(req.body.app.name);
+                }
+            }
+
+            else if(req.body.admin.security_operation == "deny_request")
+            {
+                permissions_requests.delete(req.body.app.name);
+            }
 
             // Delete all permissions
-            if(req.body.admin.security_operation == "permissions_revoke_all") {security_permissions.delete(req.body.app.name);}
+            else if(req.body.admin.security_operation == "permissions_revoke_all")
+            {
+                security_permissions.delete(req.body.app.name);
+            }
+
+            else
+            {
+                res.json
+                ({
+                    Status: 'ERROR',
+                    Description: 'Invalid security operation',
+                    Req: req.body
+                });
+
+                return;
+            }
 
             res.json
             ({
                 Status: 'OK',
-                Permission: security_settings.get(req.body.app.name)
+                Permission: security_permissions.get(req.body.app.name)
             });
         }
+
         catch(error)
         {
             res.json
@@ -395,14 +488,21 @@ app.post('/InsertConfig', (req, res) =>
 });
 */
 
-app.delete('/Delete', (req, res) =>
+app.delete('/Delete', async (req, res) =>
 {
     // Input validation
-    if( security_settings.safe_characters.test(req.body.app_name) )
+    if( security_settings.safe_characters.test(req.body.app.name) && req.body.admin.token == security_settings.admin_token )
     {
         try
         {
-            //await fs.promises.rmdir(`./apps/${req.body.app_name}`);
+            await fs.promises.rmdir(`./apps/${req.body.app.name}`, { recursive: true, force: true });
+
+            res.json
+            ({
+                Status: 'OK',
+                Operation: 'DELETE',
+                Req: req.body
+            });
         }
 
         catch(error)
@@ -441,7 +541,7 @@ app.listen(port_listen, () =>
     console.log(`Server: OK \nPort: ${port_listen} \n`);
     console.log(`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/\n`);
 
-    let browser_args_copy = global_settings.browser_and_args;
+    let browser_args = global_settings.browser_and_args.slice(1);
 
-    ExecFileAsync( browser_args_copy.shift(), browser_args_copy.concat([`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]) );
+    ExecFileAsync( global_settings.browser_and_args[0], browser_args.concat([`http://127.0.0.1:${port_listen}/Admin/${security_settings.admin_token}/`]) );
 });

@@ -1,4 +1,1 @@
-{
-    "browser_and_args":["chromium", "--incognito"],
-    "app_permissions": []
-}
+{"browser_and_args":["chromium","--incognito"],"security_permissions":[["Manual_Test",["execute","register"]]]}

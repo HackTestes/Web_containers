@@ -56,10 +56,17 @@
             <h2>Requests</h2>
             <div id="Security_Requests"></div>
 
+            <hr>
+
             <h2>Current permissions</h2>
-            <pre id="Current_Security_Permissions"></pre>
-            <button>Reset and save current security settings</button>
-            <button>Save current security settings</button>
+            <div id="Current_Security_Permissions"></div>
+
+            <hr>
+
+            <button id="Security_Reset_And_SaveBtn">Reset and save current security settings</button>
+            <button id="Security_Save_Current_PermissionsBtn">Save current security settings</button>
+            <br>
+            <br>
         </div>
 
         <div class="section" id="dev">
@@ -73,15 +80,23 @@
 
                 <br>
 
-                <button id="Dev_SearchBtn" >Pesquisar</button>
+                <button id="Dev_SearchBtn" >Search</button>
 
                 <h2>Request Permission</h2>
 
                 <label for="Security_Request_App_Name"> App name </label><br>
                 <input type="text" name="Security_Request_App_Name" id="Security_Request_App_Name" value='Test_Web_App_Auth'><br>
 
-                <label for="Security_Request_Permissions"> Permissions </label><br>
-                <input type="text" name="Security_Request_Permissions" id="Security_Request_Permissions" value=''><br>
+                <p> Permissions </p>
+
+                <input type = "checkbox" class="Permisson Dev_Permission" id='Dev_Permission_Register' name="Dev_Permission_Register" value="register">
+                <label class="Permission_Label" for = "Dev_Permission_Register"> Register </label> </br>
+
+                <input type = "checkbox" class=" Dev_Permission" id='Dev_Permission_Execute' name="Dev_Permission_Execute" value="execute">
+                <label class="Permission_Label" for = "Dev_Permission_Execute"> Execute </label> </br>
+
+                <input type = "checkbox" class="Permisson Dev_Permission" id='Dev_Permission_Update' name="Dev_Permission_Update" value="update">
+                <label class="Permission_Label" for = "Dev_Permission_Update"> Update </label> </br>
 
                 <br>
 
@@ -90,7 +105,7 @@
                 <h2>Add Apps</h2>
 
                 <label for="Insert_App_Name"> App name </label><br>
-                <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Test_Web_App_Auth'><br>
+                <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Manual_Test'><br>
 
                 <label for="Insert_App_Dev_Name"> Developer name </label><br>
                 <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
