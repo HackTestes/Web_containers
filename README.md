@@ -66,31 +66,31 @@ Feel free to submit code, as long as it follows the guidelines.
 
 Here is a list of securty technologies implemented into the sandbox
 
-[x] SECCOMP
+- [x] SECCOMP
 
-[x] Capabilities
+- [x] Capabilities
 
-[x] DAC (Discrecionary Access Control) - chmod
+- [x] DAC (Discrecionary Access Control) - chmod
 
-[x] Secure bits
+- [x] Secure bits
 
-[x] Namespacing and pivot root
+- [x] Namespacing and pivot root
 
-[x] no_new_privs bit
+- [x] no_new_privs bit
 
-[x] mount options
+- [x] mount options
 
 * MAC (Mandatory Access Control)
 
-    [x] AppArmor
+    - [x] AppArmor
 
-    [ ] SELinux
+    - [ ] SELinux
 
-    [ ] SMACK
+    - [ ] SMACK
 
-    [ ] Landlock
+    - [ ] Landlock
 
-[ ] Cgroups* (I consider CGROUPS a "security" technology, because it can stop resourece exhaustion attacks)
+- [ ] Cgroups* (I consider CGROUPS a "security" technology, because it can stop resourece exhaustion attacks)
 
 
 ## FAQ
