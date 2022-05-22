@@ -3,6 +3,7 @@
 TEST_SEPARATOR=".....................................";
 C_CPP_BENCHMARKS_PATH='/media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks';
 PROGRAM='return_0.exe';
+SYSCALLS='rt_sigaction,uname,arch_prctl,mmap,execve,rseq,rt_sigprocmask,prlimit64,brk,ioctl,mprotect,set_robust_list,write,munmap,readlink,futex,madvise,clone3,set_tid_address,getrandom,newfstatat,exit_group,exit'
 
 # System info
 uname -a;
@@ -56,14 +57,14 @@ function Test_Program()
 }
 
 # Args and programs have corresponding indexes
-PROGRAMS_TO_EXECUTE=('return_0.exe' 'cpu_single_thread_no_op_loop.exe' 'prime_number.exe' );
-PROGRAMS_ARGS=('' '1000000' '919393' );
+PROGRAMS_TO_EXECUTE=('return_0.exe' 'cpu_single_thread_no_op_loop.exe' 'prime_number.exe' 'matrix_addition_single_multi.exe' 'cpu_multi_thread_no_op_loop.exe' 'prime_number.exe');
+PROGRAMS_ARGS=('' '1000000' '919393' '10000 10 1 multi' '1000000000 12' '2147483647');
 
 SECURITY_PROGRAM_ARG='--print';
 SECURITY_PROGRAM_TEST="capsh";
 SECURITY_CONFIG="'${SECURITY_PROGRAM_TEST}' '${SECURITY_PROGRAM_ARG}'"
 
-# Speed tests
+# Speed, native and syscalls tests
 for VAR in ${!PROGRAMS_TO_EXECUTE[@]}
 do
 
@@ -76,16 +77,24 @@ do
     # Namespaced/containerized
     Test_Program "unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 
+    Test_Program "unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebits +noroot,+noroot_locked,+no_setuid_fixup_locked,+keep_caps_locked ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+
+    Test_Program "setpriv --nnp unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+
     Test_Program "podman run --rm -ti --volume ${C_CPP_BENCHMARKS_PATH}:/ --entrypoint /${PROGRAMS_TO_EXECUTE[VAR]} empty_container ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 
-    Test_Program "bwrap --unshare-all --cap-drop all --ro-bind ${C_CPP_BENCHMARKS_PATH} / /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+    Test_Program "bwrap --new-session --unshare-all --cap-drop all --ro-bind ${C_CPP_BENCHMARKS_PATH} / /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 
     Test_Program "systemd-run --user --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 
     # My implementation
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp --keep-privs ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+    #Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 
     Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --no-seccomp --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
+
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --seccomp-syscalls ${SYSCALLS} --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" "speed";
 done
 
 # Security configuration tests

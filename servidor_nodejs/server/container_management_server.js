@@ -87,6 +87,35 @@ app.get(`/Admin/${security_settings.admin_token}/GetNonURLToken`, (req, res) =>
 
 app.post('/Admin/PersistentSettings', async (req, res) =>
 {
+    if(req.body.admin.token == security_settings.admin_token)
+    {
+        for(key_value of req.body.settings)
+        {
+            //console.log(key_value[0], key_value[1]);
+            //global_settings[key_value[0]] = global_settings[key_value[1]];
+        }
+
+        res.json
+        ({
+            Status: 'OK',
+            Description: 'New settings added',
+            Settings: global_settings
+        })
+    }
+
+    else
+    {
+        res.json
+        ({
+            Status: 'ERROR',
+            Description: 'Incorrect admin token',
+            Token: req.body.admin.token
+        });
+    }
+});
+
+app.post('/Admin/PermissionPersistentSettings', async (req, res) =>
+{
     // Verify credentials
     if(req.body.admin.token == security_settings.admin_token)
     {

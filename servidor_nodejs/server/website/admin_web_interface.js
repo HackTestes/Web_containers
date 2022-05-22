@@ -113,6 +113,33 @@ document.querySelector("#Search_App").onkeyup = (key_press) =>
 
 let last_response = '';
 
+document.querySelector('#Security_Default_Browser').onkeyup = (event) =>
+{
+    console.log(event);
+
+    if(event.code == 'Enter')
+    {
+        let json_data = 
+        {
+            "settings": [["browser_and_args", document.querySelector('#Security_Default_Browser').value.split(' ')]],
+
+            "admin":
+            {
+                "token": window.location.href.split('/')[4],
+            }
+        }
+
+        $.ajax({
+            type: "post",
+            url: `http://127.0.0.1:3000/Admin/PersistentSettings`,
+            data: JSON.stringify( json_data ),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: (data) => { console.log(data) }
+        });
+    }
+}
+
 function SecurityAddEventListener(btn_class, security_operation)
 {
     for( btn of document.querySelectorAll(btn_class) )
@@ -275,7 +302,7 @@ function SetPersistentSecuritySettings(operation)
 
     $.ajax({
         type: "post",
-        url: `http://127.0.0.1:3000/Admin/PersistentSettings`,
+        url: `http://127.0.0.1:3000/Admin/PermissionPersistentSettings`,
         data: JSON.stringify( json_data ),
         contentType: 'application/json',
         dataType: 'json',
