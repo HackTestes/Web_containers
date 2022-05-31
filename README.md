@@ -90,7 +90,7 @@ Here is a list of securty technologies implemented into the sandbox
 
     - [ ] Landlock
 
-- [ ] Cgroups* (I consider CGROUPS a "security" technology, because it can stop resourece exhaustion attacks)
+- [ ] Cgroups* (I consider CGROUPS a "security" technology, because it can stop resource exhaustion attacks)
 
 
 ## FAQ

@@ -1,15 +1,14 @@
 /servidor_nodejs/server/apps/**
 /servidor_nodejs/node_modules/**
 
+/**/node_modules
+
 **/dev/
 **/etc/
 **/proc/
 **/run/
 **/tmp/
 
-
 !*placeholder
 
 *.exe
-
-Exibindo
