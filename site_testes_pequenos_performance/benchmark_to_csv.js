@@ -83,7 +83,7 @@ function ArrayToCsv(tests_array, sep)
         csv_output += "\n";
     }
 
-    return csv_output;
+    return csv_output.replace(/"|'/g, "");
 }
 
 function read_benchmark(input)

@@ -126,3 +126,13 @@ done
 Test_Program "unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebits +noroot,+noroot_locked,+no_setuid_fixup_locked,+keep_caps_locked ${SECURITY_PROGRAM_TEST} ${SECURITY_PROGRAM_ARG}" ${SECURITY_CONFIG} "security";
 Test_Program "systemd-run --user -P --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${SECURITY_PROGRAM_TEST} ${SECURITY_PROGRAM_ARG}" ${SECURITY_CONFIG} "security";
 Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp ${SECURITY_PROGRAM_TEST} ${SECURITY_PROGRAM_ARG}" ${SECURITY_CONFIG} "security";
+
+# JS and WASM perf tests
+
+# Start the web server
+
+# Run JS benchmarks
+
+# Run WASM benchmarks
+
+# Terminate the webserver
