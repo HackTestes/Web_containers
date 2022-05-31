@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 
 // Source https://www.geeksforgeeks.org/c-program-to-check-prime-number/
 bool isPrime(unsigned long long int n)
@@ -19,8 +20,19 @@ bool isPrime(unsigned long long int n)
 int main(int argc, char* argv[])
 {
     unsigned long long int number = std::strtoull( argv[1], NULL, 10 );
+    unsigned long long int num_of_threads = std::strtoull( argv[2], NULL, 10 );
 
-    isPrime(number) ? std::cout << " true\n" : std::cout << " false\n";
+    std::thread threads_array[num_of_threads];
+
+    for(unsigned long long int i = 0; i < num_of_threads; ++i)
+    {
+        threads_array[i] = std::thread(isPrime, number);
+    }
+
+    for(unsigned long long int i = 0; i < num_of_threads; ++i)
+    {
+        threads_array[i].join();
+    }
 
     return 0;
 }

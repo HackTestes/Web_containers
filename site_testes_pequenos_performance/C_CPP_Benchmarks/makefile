@@ -10,6 +10,6 @@ EXE = $(CPP:.cpp=.exe)
 all: $(EXE)
 
 %.exe: %.cpp
-	$(CC) -o $@ $^ -pipe -static
+	$(CC) -o executable_dir/$@ $^ -pipe -static
 
 .PHONY: all
