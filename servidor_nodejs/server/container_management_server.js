@@ -21,7 +21,7 @@ const SpawnAsync = util.promisify(child_process.spawn);
 // https://developer.ibm.com/articles/avoiding-arbitrary-code-execution-vulnerabilities-when-using-nodejs-child-process-apis/
 
 // This object stores persistent data about this program
-let global_settings = fs.readFileSync('./settings.json')
+let global_settings = fs.readFileSync('./settings.json');
 global_settings = JSON.parse(global_settings);
 
 console.log("Working dir: " + process.cwd());
