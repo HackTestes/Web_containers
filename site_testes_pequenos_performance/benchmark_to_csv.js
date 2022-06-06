@@ -35,7 +35,7 @@ function FilterEmptyArray(value)
 function Read_SubKeyValue(array, kay_value_sep, real_output_length)
 {
     let command = `${array[0].replace(/\n/g, "")} - `;
-    let start_positon = array.length - real_output_length; // skip the program output
+    let start_positon = array.length - real_output_length; // skips the program output
     let key_value_object = {};
 
     for(let i = start_positon; i < array.length; ++i)
