@@ -29,7 +29,7 @@ Module['onRuntimeInitialized'] = async () =>
             Time_to_start_wasm_runtime_miliseconds: `${runtime_initialized_time}ms`,
             Timings_miliseconds: timings_list.map((value) => `${value}ms`).join(" "),
             Avg_with_first_run: `${timings_list.reduce( (a, b) => a + b ) / timings_list.length}ms`,
-            Average_no_first_run: `${timings_list_no_start.reduce( (a, b) => a + b ) / timings_list_no_start.length}ms`
+            Avg_no_first_run: `${timings_list_no_start.reduce( (a, b) => a + b ) / timings_list_no_start.length}ms`
         })
     })
     .then(res => res.json())

@@ -52,21 +52,28 @@ function Result_To_Tsv(results_array_obj, sep)
     let header = Object.keys(results_array_obj[0]);
 
     // Build the header (columns)
+    tsv += header.join(sep) + '\n';
+
+    /*
     for (key of header)
     {
         tsv += key + sep;
     }
     tsv += '\n';
+    */
 
     // Build all the rows
     for(result_obj of results_array_obj)
     {
+        tsv += Object.values(result_obj).join(sep) + '\n';
+
+        /*
         for (result_key in result_obj)
         {
             tsv += result_obj[result_key] + sep;
         }
-
         tsv += '\n';
+        */
     }
 
     console.log(tsv);
