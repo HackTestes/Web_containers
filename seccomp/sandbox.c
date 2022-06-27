@@ -691,7 +691,7 @@ Public License instead of this License.  But first, please read
 // Test shell command
 /*
 
-gcc ./seccomp_filter.c -o ./exec_program_seccomp -lseccomp -lcap -lapparmor -O2 && \
+gcc ./sandbox.c -o ./exec_program_seccomp -lseccomp -lcap -lapparmor -pipe && \
 time ./exec_program_seccomp \
     --seccomp-syscalls execve,brk,arch_prctl,access,openat,newfstatat,mmap,close,read,pread64,mprotect,set_tid_address,set_robust_list,prlimit64,munmap,getrandom,write,exit_group,exit,fstat,readlink,uname,access \
     --apparmor-profile '/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/apps/**' \

@@ -70,25 +70,10 @@ function ArrayToCsv(tests_array, sep)
     // Header
     csv_output += Object.keys(tests_array[0]).join(sep) + "\n";
 
-    /*
-    for(key in tests_array[0])
-    {
-        csv_output += key + sep;
-    }
-    csv_output += "\n";
-    */
-
+    // Rows
     for(test_obj of tests_array)
     {
         csv_output += Object.values(test_obj).join(sep) + "\n";
-
-        /*
-        for(key in test_obj)
-        {
-            csv_output += test_obj[key] + sep;
-        }
-        csv_output += "\n";
-        */
     }
 
     return csv_output.replace(/"|'/g, "");

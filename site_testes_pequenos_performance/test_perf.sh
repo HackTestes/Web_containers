@@ -25,7 +25,7 @@ function Test_Perf()
     echo "${TEST_SEPARATOR}"
 
     printf '\ndate +%%s%%N\n';
-    COMMAND='START=$(date +%s%N) && '$1' &>/dev/null ; END=$(date +%s%N) && printf " nanoseconds:$((END - START))ns \n picoseconds:$(((END - START) / 1000))us \n miliseconds:$(((END - START) / 1000000))ms"'
+    COMMAND='START=$(date +%s%N) && '$1' &>/dev/null ; END=$(date +%s%N) && printf " nanoseconds:$((END - START))ns \n microseconds:$(((END - START) / 1000))us \n miliseconds:$(((END - START) / 1000000))ms"'
     /usr/bin/bash -c "${COMMAND}";
 }
 
@@ -127,12 +127,3 @@ Test_Program "unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebit
 Test_Program "systemd-run --user -P --wait -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits= keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${SECURITY_PROGRAM_TEST} ${SECURITY_PROGRAM_ARG}" ${SECURITY_CONFIG} "security";
 Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --fork --host-filesystem --no-seccomp ${SECURITY_PROGRAM_TEST} ${SECURITY_PROGRAM_ARG}" ${SECURITY_CONFIG} "security";
 
-# JS and WASM perf tests
-
-# Start the web server
-
-# Run JS benchmarks
-
-# Run WASM benchmarks
-
-# Terminate the webserver
