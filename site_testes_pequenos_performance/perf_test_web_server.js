@@ -60,7 +60,7 @@ function Result_To_Tsv(results_array_obj, sep)
 let results = [];
 
 let startup_executios = 100;
-let normal_tests_executions = 2;
+let normal_tests_executions = 15;
 
 let current_test = 0;
 let test_list = 

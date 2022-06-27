@@ -100,7 +100,7 @@ do
     Test_Program "${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'native' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
     # My implementation
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}";
+    #Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}";
 
     Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
