@@ -9,18 +9,27 @@ SYSCALLS_SPACE_SEP=$(echo ${SYSCALLS} | tr ',' ' ')
 #uname -a;
 #lscpu;
 
+sleep 5;
+
 printf '\n\n-------------------------------- TEST START --------------------------------\n\n\n'
 
 function Test_Program()
 {
-    printf "Test $1 - $5\n"
+    EXE_COMMAND=$1;
+    ALIAS=$2;
+    TEST_PROGRAM=$3;
+    ARGS=$4;
+    TYPE=$5;
+    LOOP_SIZE=$6;
+
+    printf "Test ${ALIAS} - ${TEST_PROGRAM}\n"
 
     COMMAND='START=$(date +%s%N) && '$1' &>/dev/null ; END=$(date +%s%N) && printf "$((END - START))"';
     EXIT_CODE=1;
     NANOSECOND="";
     MICROSECOND="";
     MILISECOND="";
-    for ((i = 0; i < $5; i++));
+    for ((i = 0; i < ${LOOP_SIZE}; i++));
     do
         printf "Loop: $i\n";
         RESULT_COMMAND=$(/usr/bin/bash -c "${COMMAND}");
@@ -30,7 +39,7 @@ function Test_Program()
         MILISECOND+="$(((RESULT_COMMAND) / 1000000)) "
     done
 
-    printf "$1 \t$2 \t$3 \t$4 \t${EXIT_CODE} \t${NANOSECOND} \t ${MICROSECOND} \t ${MILISECOND} \t0\n" >>'Perf_results.tsv'
+    printf "${EXE_COMMAND}\t${ALIAS}\t${TEST_PROGRAM}\t${ARGS}\t${TYPE}\t${EXIT_CODE}\t${NANOSECOND}\t${MICROSECOND}\t${MILISECOND}\t0\n" >>'Perf_results.tsv'
 }
 
 TESTS_NUMBER_OF_EXECUTIONS=15;
@@ -70,7 +79,7 @@ PROGRAMS_ARGS+=('999999999 12');
 PROGRAM_TIMES_TO_EXECUTE+=($TESTS_NUMBER_OF_EXECUTIONS);
 
 TEST_FILE='Testes_de_inicializacao.tsv'
-printf 'Command \tTest_program \tArgs \tType \tExit_code \tNanoseconds \tMicroseconds \tMiliseconds \tRuntime_startup_time_miliseconds\n' >'Perf_results.tsv'
+printf 'Command\tAlias\tTest_program\tArgs\tType\tExit_code\tNanoseconds\tMicroseconds\tMiliseconds\tRuntime_startup_time_miliseconds\n' >'Perf_results.tsv'
 
 # Startup tests
 
@@ -78,42 +87,42 @@ printf 'Command \tTest_program \tArgs \tType \tExit_code \tNanoseconds \tMicrose
 #Test_Program "${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'native' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
 # Namespaced/containerized
-Test_Program "unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'unshare' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebits +noroot,+noroot_locked,+no_setuid_fixup_locked,+keep_caps_locked ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "unshare -muinpUCT --fork --map-root-user setpriv --nnp --securebits +noroot,+noroot_locked,+no_setuid_fixup_locked,+keep_caps_locked ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'unshare+setpriv' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "setpriv --nnp unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "setpriv --nnp unshare -muinpUCT --fork --map-current-user -R ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'setpriv+unshare' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "podman run --rm -ti --volume ${C_CPP_BENCHMARKS_PATH}:/ --entrypoint /${PROGRAMS_TO_EXECUTE[0]} empty_container ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "podman run --rm -ti --volume ${C_CPP_BENCHMARKS_PATH}:/ --entrypoint /${PROGRAMS_TO_EXECUTE[0]} empty_container ${PROGRAMS_ARGS[0]}" 'podman' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "bwrap --new-session --unshare-all --cap-drop all --ro-bind ${C_CPP_BENCHMARKS_PATH} / /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "bwrap --new-session --unshare-all --cap-drop all --ro-bind ${C_CPP_BENCHMARKS_PATH} / /${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'bwrap' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "systemd-run --user --wait --collect -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits=keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "systemd-run --user --wait --collect -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits=keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'systemd-run' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
-Test_Program "systemd-run --user --wait --collect -p 'SystemCallFilter=${SYSCALLS_SPACE_SEP}' -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits=keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
+Test_Program "systemd-run --user --wait --collect -p 'SystemCallFilter=${SYSCALLS_SPACE_SEP}' -p 'NoNewPrivileges=true' -p 'MemoryDenyWriteExecute=true' -p 'PrivateUsers=true' -p 'SecureBits=keep-caps-locked no-setuid-fixup-locked noroot noroot-locked' -p 'CapabilityBoundingSet=' -p 'AmbientCapabilities=' ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[0]} ${PROGRAMS_ARGS[0]}" 'systemd-run(seccomp)' "${PROGRAMS_TO_EXECUTE[0]}" "${PROGRAMS_ARGS[0]}" 'container' ${PROGRAM_TIMES_TO_EXECUTE[0]};
 
 
 # Speed, native and syscalls tests
 for VAR in ${!PROGRAMS_TO_EXECUTE[@]}
 do
     # Native
-    Test_Program "${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'native' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'native' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
     # My implementation
     #Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}";
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --no-seccomp --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --no-seccomp --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox(pivot-root)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --seccomp-syscalls ${SYSCALLS} --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --seccomp-syscalls ${SYSCALLS} --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox(seccomp)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 done
 
 # WASM tests
 printf 'WASM tests';
 
-./perf_test_web_server.js google-chrome --incognito >>'Perf_results.tsv';
+./perf_test_web_server.js google-chrome --incognito chrome >>'Perf_results.tsv';
 
-./perf_test_web_server.js chromium --incognito >>'Perf_results.tsv';
+./perf_test_web_server.js chromium --incognito chromium >>'Perf_results.tsv';
 
-./perf_test_web_server.js '/home/caioh/Downloads/firefox/firefox' --private >>'Perf_results.tsv';
+./perf_test_web_server.js '/home/caioh/Downloads/firefox/firefox' --private firefox >>'Perf_results.tsv';

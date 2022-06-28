@@ -32,7 +32,7 @@ let call_main_js = fs.readFileSync('./callMain.js', {encoding:'utf8', flag:'r'})
 let HTML_template = fs.readFileSync('./fetch.html', {encoding:'utf8', flag:'r'});
 
 let browser_process_signal;
-
+let browser_alias = process.argv.pop();
 
 function Program_args_obj(program_name, program_arguments, number_of_executions)
 {
@@ -51,7 +51,7 @@ function Result_To_Tsv(results_array_obj, sep)
     for(result_obj of results_array_obj)
     {
         //tsv += Object.values(result_obj).join(sep) + '\n';
-        tsv += `${result_obj['Command']} ${sep}${result_obj['Test_program']} ${sep}${result_obj['Args']} ${sep}${result_obj['Type']} ${sep}${result_obj['Exit_code']} ${sep}${result_obj['Nanoseconds']} ${sep}${result_obj['Microseconds']} ${sep}${result_obj['Miliseconds']} ${sep}${result_obj['Runtime_startup_time_miliseconds']}\n`;
+        tsv += `${result_obj['Command']}${sep}${result_obj['Alias']}${sep}${result_obj['Test_program']}${sep}${result_obj['Args']}${sep}${result_obj['Type']}${sep}${result_obj['Exit_code']}${sep}${result_obj['Nanoseconds']}${sep}${result_obj['Microseconds']}${sep}${result_obj['Miliseconds']}${sep}${result_obj['Runtime_startup_time_miliseconds']}\n`;
     }
 
     return tsv;
@@ -112,6 +112,7 @@ app.get(`/WASM/:file_name`, async (req, res) =>
 app.post(`/WASM/result`, (req, res) =>
 {
     req.body['Command'] = `${process.argv[2]} ${process.argv.slice(3)}`;
+    req.body['Alias'] = browser_alias;
     console.error(req.body);
     results.push(req.body);
     ++current_test;
