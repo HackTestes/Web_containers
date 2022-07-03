@@ -30,7 +30,7 @@ Module['onRuntimeInitialized'] = async () =>
             Exit_code: exit_code,
             Miliseconds: timings_list/*.map((value) => `${value}ms`)*/.join(" "),
             Microseconds: timings_list.map((value) => value*1000).join(" "),
-            Nanoseconds: '',
+            Nanoseconds: 0,
             Runtime_startup_time_miliseconds: runtime_initialized_time
         })
     })

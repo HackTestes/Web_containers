@@ -1790,11 +1790,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Load profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT) adds no new privs
+    // Loads profile into the kernel (CANNOT BE REMOVED AFTER THIS POINT) adds no new privs
     if (seccomp_enabled) {seccomp_load(ctx);}
 
-    // Add no_new_privs even without seccomp
-    
+    // Adds no_new_privs even without seccomp    
     else if(keep_privs == false)
     {
         if( prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) )

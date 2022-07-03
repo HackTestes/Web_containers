@@ -17,15 +17,19 @@ unsigned long long generateFibonacci(unsigned long long n)
     unsigned long long a = 1;
     unsigned long long b = 1;
     unsigned long long c;
+    
+    std::cout << "0 " << a << ' ' << b;
 
     for (unsigned long long i = 3; i < n; i++)
     {
         c = a + b;
         a = b;
         b = c;
+        
+        std::cout << ' ' << c;
     }
 
-    return c;
+    return 0;
 }
 
 int main(int argc, char* argv[])

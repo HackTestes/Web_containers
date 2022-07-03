@@ -388,8 +388,8 @@ app.post('/Execute/', async (req, res) =>
 
             if(files.length == 0)
             {
-                // all file are build in the tmpfs folder and only the binary is stored on the host
-                // tmpfs limit to avoid zip bombs
+                // all files are built in the tmpfs folder and only the binary (AppExecutable) is stored on the host
+                // There is a tmpfs limit to avoid zip bombs
                 let { stdout, stderr } = await ExecFileAsync(`${seccomp_exe}`, [`--unshare`, `all-pid`, `--fork`, `--host-filesystem`, `--uid`, `1000`,`--gid`, `1000`, `--apparmor-profile-immediate`, `compilation_security_profile`, `--mount`, `tmpfs_device`, `/tmp`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--mount`, `tmpfs_device_src`, `${__dirname}/apps/${req.body.app_name}/app_source`, `tmpfs`, 'MS_NODEV|MS_NOEXEC|MS_NOSUID', 'size=1G', `--no-seccomp`, `/media/caioh/EXTERNAL_HDD1/TCC_CAIO/conteiner_compilacao/build_executable.sh`, `${__dirname}/apps/${req.body.app_name}` ]);
                 //console.log(stdout, stderr);
             }
