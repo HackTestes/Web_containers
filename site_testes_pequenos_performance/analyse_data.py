@@ -20,7 +20,7 @@ def startup_Graph():
     plt.xticks(rotation=45, horizontalalignment='right')
     plt.subplots_adjust(bottom=0.3)
     plt.xlabel('Programas de teste', fontsize=45)
-    plt.ylabel('Médias dos tempos (ms)', fontsize=45)
+    plt.ylabel('Médias dos tempos (us)', fontsize=45)
     plt.title('Tempos de inicialização', fontsize=50)
 
     positions = range(0, startup_tests.shape[0]*2, 2)
