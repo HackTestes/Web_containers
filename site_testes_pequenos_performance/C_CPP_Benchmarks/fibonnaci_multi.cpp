@@ -18,7 +18,7 @@ unsigned long long generateFibonacci(unsigned long long n)
     unsigned long long b = 1;
     unsigned long long c;
     
-    std::cout << "0 " << a << ' ' << b;
+    //std::cout << "0 " << a << ' ' << b;
 
     for (unsigned long long i = 3; i < n; i++)
     {
@@ -26,7 +26,7 @@ unsigned long long generateFibonacci(unsigned long long n)
         a = b;
         b = c;
         
-        std::cout << ' ' << c;
+        //std::cout << ' ' << c;
     }
 
     return 0;
