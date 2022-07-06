@@ -11,9 +11,12 @@ graphs_folder = './Graphs/'
 # Graph template functions
 def startup_Graph():
     # Bar plot
-    startup_tests = pandasql.sqldf("""SELECT * FROM data_without_timings WHERE Test_program LIKE 'return_0%' AND Command NOT LIKE '%podman%' ORDER BY Mean_microseconds """)
-
+    startup_tests = total_data.loc[total_data['Test_program'].str.contains('return_0') & ~total_data['Alias'].str.contains('podman')].sort_values(by=['Mean_microseconds'], ignore_index=True).replace({numpy.nan: None})
     print(startup_tests)
+
+    #startup_tests = pandasql.sqldf("""SELECT * FROM data_without_timings WHERE Test_program LIKE 'return_0%' AND Command NOT LIKE '%podman%' ORDER BY Mean_microseconds """)
+    #print(startup_tests)
+
 
     plt.rcParams.update({'font.size': 40})
     plt.subplots(figsize=(35,35))
@@ -153,6 +156,12 @@ def string_To_List(string):
 
     return timings
 
+def normalize_Array(array):
+    print(array)
+    normalized_array = numpy.vectorize(lambda array_item: (array_item - numpy.mean(array))/(numpy.std(array, ddof=1))) (array)
+
+    return normalized_array
+
 total_data = pandas.read_csv('Perf_results.tsv', sep='\t')
 
 # Remove unecessary spaces
@@ -172,6 +181,9 @@ total_data['Miliseconds_organized'] = total_data['Miliseconds'].apply(lambda x: 
 total_data['Mean_miliseconds'] = total_data['Miliseconds_organized'].apply(lambda x: numpy.mean(x))
 total_data['Median_miliseconds'] = total_data['Miliseconds_organized'].apply(lambda x: numpy.median(x))
 total_data['Std_miliseconds'] = total_data['Miliseconds_organized'].apply(lambda x: numpy.std(x, ddof=1))
+total_data['Miliseconds_max'] = numpy.vectorize(lambda x: numpy.max(x))(total_data['Miliseconds'])
+total_data['Miliseconds_min'] = numpy.vectorize(lambda x: numpy.min(x))(total_data['Miliseconds'])
+
 
 
 total_data['Microseconds'] = total_data['Microseconds'].apply(string_To_List)
@@ -180,6 +192,9 @@ total_data['Microseconds_organized'] = total_data['Microseconds'].apply(lambda x
 total_data['Mean_microseconds'] = total_data['Microseconds_organized'].apply(lambda x: numpy.mean(x))
 total_data['Median_microseconds'] = total_data['Microseconds_organized'].apply(lambda x: numpy.median(x))
 total_data['Std_microseconds'] = total_data['Microseconds_organized'].apply(lambda x: numpy.std(x, ddof=1))
+total_data['Microseconds_max'] = numpy.vectorize(lambda x: numpy.max(x))(total_data['Microseconds'])
+total_data['Microseconds_min'] = numpy.vectorize(lambda x: numpy.min(x))(total_data['Microseconds'])
+
 
 # Show the amount of runs
 total_data['Number_of_executions'] = total_data['Microseconds'].apply(lambda x: len(x))
@@ -192,9 +207,10 @@ total_data = total_data.drop(columns=['Nanoseconds'])
 total_data['Index'] = total_data.index.values.tolist()
 
 # Necessary for pandasql to work
-data_without_timings = total_data.drop(columns=['Miliseconds', 'Microseconds'])
+#data_without_timings = total_data.drop(columns=['Miliseconds', 'Microseconds'])
 
 print(total_data)
+
 total_data.to_csv('Results_python.csv', index=False)
 
 
