@@ -1,5 +1,6 @@
 #include <iostream>
 
+// https://www.geeksforgeeks.org/bubble-sort/
 int main(int argc, char* argv[])
 {
     unsigned long long int array_size = std::strtoull( argv[1], NULL, 10 );
@@ -14,36 +15,29 @@ int main(int argc, char* argv[])
         list[i] = (array_size-1) - i;
     }
 
-    // for(unsigned long long int i = 0; i < array_size; ++i)
-    // {
-    //     std::cout << list[i] << '\n';
-    // }
+    //for(unsigned long long int i = 0; i < array_size; ++i)
+    //{
+    //    std::cout << i << " - " << list[i] << '\n';
+    //}
 
-    // std::cout << "\n\n";
-
-    for(unsigned long long int i = 0; i < array_size; ++i)
+    for(unsigned long long int i = 0; i < array_size -1; ++i)
     {
-        for(unsigned long long int j = 0; j < array_size; ++j)
+        for(unsigned long long int j = 0; j < array_size -i -1; ++j)
         {
-            if((j+1) < array_size)
+            if(list[j] > list[j+1])
             {
-                if(list[j] > list[j+1])
-                {
-                    unsigned long long int temp = list[j];
-                    list[j] = list[j+1];
-                    list[j+1] = temp;
-                }
+                unsigned long long int temp = list[j];
+                list[j] = list[j+1];
+                list[j+1] = temp;
             }
         }
     }
 
-    // std::cout << "\n\n";
-
-
-    // for(unsigned long long int i = 0; i < array_size; ++i)
-    // {
-    //     std::cout << list[i] << '\n';
-    // }
+    //std::cout << "\n\n\n";
+    //for(unsigned long long int i = 0; i < array_size; ++i)
+    //{
+    //   std::cout << i << " - " << list[i] << '\n';
+    //}
 
     delete[] list;
 

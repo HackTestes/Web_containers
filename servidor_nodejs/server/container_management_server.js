@@ -58,11 +58,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
-app.get('/TestAppDownload.zip', async (rew, res) =>
+// Just a test URL with all the benchmark programs
+app.get('/getZipApp/:app_zip_archive', async (req, res) =>
 {
-    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/Test_app.zip');
-
+    let my_test_app = await fs.promises.readFile('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/compressed_packages/' + req.params.app_zip_archive);
+    console.log('/media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/compressed_packages/' + req.params.app_zip_archive);
     res.send(my_test_app);
 });
 
@@ -76,15 +76,7 @@ app.get(`/Admin/${security_settings.admin_token}/:website_resource`, (req, res) 
     res.sendFile( __dirname + `/website/${req.params.website_resource}` );
 });
 
-// Just an idea against URL/network sniffing*
-// Observation: this server is not encrypted!
 /*
-app.get(`/Admin/${security_settings.admin_token}/GetNonURLToken`, (req, res) =>
-{
-    res.send( crypto.randomBytes(48).toString('hex') );
-});
-*/
-
 app.post('/Admin/PersistentSettings', async (req, res) =>
 {
     if(req.body.admin.token == security_settings.admin_token)
@@ -280,6 +272,7 @@ app.post('/Admin/SetAppPermissions', async (req, res) =>
     }
 });
 
+
 app.post('/RequestAppPermissions', async (req, res) =>
 {
     // Input validation
@@ -304,14 +297,15 @@ app.post('/RequestAppPermissions', async (req, res) =>
         });
     }
 });
+*/
 
 
 // Register the app
 app.post('/RegisterApp', async (req, res) =>
 {
     //if(GetSecurityPermission(req.body.app.name, 'register'))
-    if(security_permissions.has(req.body.app.name) && security_permissions.get(req.body.app.name).has('register'))
-    {
+    //if(security_permissions.has(req.body.app.name) && security_permissions.get(req.body.app.name).has('register'))
+    //{
         let protocol =
         {
             'http': http,
@@ -354,17 +348,17 @@ app.post('/RegisterApp', async (req, res) =>
         });
 
         console.log( req.body, app_name, req.body.app.origin_url.split('/').pop() );
-    }
+    //}
 
-    else
-    {
-        res.json
-        ({
-            Status: "ERROR_SECURITY",
-            Description: 'Permission to register denied. Request added',
-            Req: req.body
-        });
-    }
+    //else
+    //{
+    //    res.json
+    //    ({
+    //        Status: "ERROR_SECURITY",
+    //        Description: 'Permission to register denied. Request added',
+    //        Req: req.body
+    //    });
+    //}
 });
 
 // ExecFileAsync('podman', ['run', '--rm', '--tmpfs', '/container/tmpfs:rw,size=1048576k', '-v', `./apps/${req.body.app_name}/:/container/tmpfs/app`, '-v', `./apps/${req.body.app_name}/bin:/container/bin`, 'compilation_container']);
@@ -379,7 +373,7 @@ app.post('/Execute/', async (req, res) =>
 {
     // Input validation
     //console.log(`${req.body.app_name} : ${security_settings.safe_characters.test(req.body.app_name)}`);
-    if( security_settings.safe_characters.test(req.body.app_name) && security_permissions.has(req.body.app_name) && security_permissions.get(req.body.app_name).has('execute'))
+    if( security_settings.safe_characters.test(req.body.app_name) /* && security_permissions.has(req.body.app_name) && security_permissions.get(req.body.app_name).has('execute')*/)
     {
         try
         {
@@ -509,13 +503,6 @@ app.get('/GetApps/:pattern', async (req, res) =>
     }
 });
 
-/*
-// Insere uma configuração - POSSIVELMENTE NÃO TERÁ NO FINAL (FORO DO ESCOPO?)
-app.post('/InsertConfig', (req, res) =>
-{
-
-});
-*/
 
 app.delete('/Delete', async (req, res) =>
 {

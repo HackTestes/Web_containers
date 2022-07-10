@@ -57,7 +57,7 @@ PROGRAMS_TO_EXECUTE+=('linear_search.exe');
 PROGRAMS_ARGS+=('10000000');
 PROGRAM_TIMES_TO_EXECUTE+=($TESTS_NUMBER_OF_EXECUTIONS);
 
-PROGRAMS_TO_EXECUTE+=('cpu_single_thread_no_op_loop.exe');
+PROGRAMS_TO_EXECUTE+=('single_thread_no_op_loop.exe');
 PROGRAMS_ARGS+=('1000000000');
 PROGRAM_TIMES_TO_EXECUTE+=($TESTS_NUMBER_OF_EXECUTIONS);
 
@@ -73,7 +73,7 @@ PROGRAMS_TO_EXECUTE+=('matrix_addition_single_multi.exe');
 PROGRAMS_ARGS+=('10000 10 1 multi');
 PROGRAM_TIMES_TO_EXECUTE+=($TESTS_NUMBER_OF_EXECUTIONS);
 
-PROGRAMS_TO_EXECUTE+=('cpu_multi_thread_no_op_loop.exe');
+PROGRAMS_TO_EXECUTE+=('multi_thread_no_op_loop.exe');
 PROGRAMS_ARGS+=('1000000000 6');
 PROGRAM_TIMES_TO_EXECUTE+=($TESTS_NUMBER_OF_EXECUTIONS);
 
@@ -118,11 +118,11 @@ do
     # My implementation
     #Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}";
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --host-filesystem --no-seccomp ${C_CPP_BENCHMARKS_PATH}/${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'LLC' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --no-seccomp --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox(pivot-root)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --no-seccomp --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'LLC(pivot-root)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 
-    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --seccomp-syscalls ${SYSCALLS} --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'sandbox(seccomp)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
+    Test_Program "/media/caioh/EXTERNAL_HDD1/TCC_CAIO/seccomp/exec_program_seccomp --unshare all --apparmor-profile-exec restricted_native_web_app --fork --seccomp-syscalls ${SYSCALLS} --pivot-root ${C_CPP_BENCHMARKS_PATH} /${PROGRAMS_TO_EXECUTE[VAR]} ${PROGRAMS_ARGS[VAR]}" 'LLC(seccomp)' "${PROGRAMS_TO_EXECUTE[VAR]}" "${PROGRAMS_ARGS[VAR]}" 'custom_container' ${PROGRAM_TIMES_TO_EXECUTE[VAR]};
 done
 
 # WASM tests

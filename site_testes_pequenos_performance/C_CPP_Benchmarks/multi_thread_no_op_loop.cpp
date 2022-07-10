@@ -3,10 +3,13 @@
 
 void NoOpLoop(unsigned long long int num_of_loops)
 {
+    unsigned long long int loops_executed;
     for(unsigned long long int i = 0; i < num_of_loops; ++i)
     {
-
+        loops_executed = i;
     }
+
+    std:: cout << "Loops executed: " << loops_executed << '\n';
 }
 
 

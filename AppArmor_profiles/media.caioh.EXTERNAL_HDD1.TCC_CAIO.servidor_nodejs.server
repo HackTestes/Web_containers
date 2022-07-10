@@ -6,6 +6,8 @@
     network,
     /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/server/** rw,
     /media/caioh/EXTERNAL_HDD1/TCC_CAIO/servidor_nodejs/** r,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/site_testes_pequenos_performance/C_CPP_Benchmarks/compressed_packages/** r,
+    /media/caioh/EXTERNAL_HDD1/TCC_CAIO/** r,
     /usr/share/zoneinfo-icu/** r,
     /usr/bin/podman pux,
     /snap/bin/chromium px,

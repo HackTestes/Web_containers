@@ -18,7 +18,7 @@
             <ul>
                 <a href="#HOME" id="nav_home"> <img src="home.svg" alt=""> </a>
                 <a href="#SEARCH" id="nav_search"> <img src="search.svg" alt=""> </a>
-                <a href="#SECURITY" id="nav_security"> <img src="security.svg" alt=""> </a>
+                <!-- <a href="#SECURITY" id="nav_security"> <img src="security.svg" alt=""> </a> -->
                 <a href="#DEV" id="nav_dev"> <img src="dev.svg" alt=""> </a>
             </ul>
         </div>
@@ -29,10 +29,10 @@
             <p>This is the admin dashboard for the native web programs. Here you can manage a series of configurations, search, delete apps and even use it for development.</p>
 
             <h2>Navigation</h2>
-            <p>You can navigate through the several sections using the nav bar at the left. Sections: HOME(current), SEARCH, SECURITY, DEV.</p>
+            <p>You can navigate through the several sections using the nav bar at the left. Sections: HOME(current), SEARCH, DEV.</p>
 
             <h2>Source code</h2>
-            <p>You can the projects's source code here: <a href="https://github.com/HackTestes/Web_containers"> https://github.com/HackTestes/Web_containers </a></p>
+            <p>You can get the projects's source code here: <a href="https://github.com/HackTestes/Web_containers"> https://github.com/HackTestes/Web_containers </a></p>
 
             <h2>Author</h2>
             <p>Caio Gomes Flausino</p>
@@ -50,7 +50,7 @@
         </div>
 
 
-        <div class="section" id="security">
+        <!-- <div class="section" id="security">
             <h1>Security</h1>
 
             <h2>Default browser</h2>
@@ -74,7 +74,7 @@
             <button id="Security_Save_Current_PermissionsBtn">Save current security settings</button>
             <br>
             <br>
-        </div>
+        </div> -->
 
         <div class="section" id="dev">
             <h1>Developer Settings</h1>
@@ -89,7 +89,7 @@
 
                 <button id="Dev_SearchBtn" >Search</button>
 
-                <h2>Request Permission</h2>
+                <!-- <h2>Request Permission</h2>
 
                 <label for="Security_Request_App_Name"> App name </label><br>
                 <input type="text" name="Security_Request_App_Name" id="Security_Request_App_Name" value='Test_Web_App_Auth'><br>
@@ -107,18 +107,18 @@
 
                 <br>
 
-                <button id="RequestPermissionAppBtn" >Request</button>
+                <button id="RequestPermissionAppBtn" >Request</button> -->
 
                 <h2>Add Apps</h2>
 
-                <label for="Insert_App_Name"> App name </label><br>
-                <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Manual_Test'><br>
+                <label for="Insert_App_Name"> App name* </label><br>
+                <input type="text" name="Insert_App_Name" id="Insert_App_Name" value='Prime_number'><br>
 
                 <label for="Insert_App_Dev_Name"> Developer name </label><br>
                 <input type="text" name="Insert_App_Dev_Name" id="Insert_App_Dev_Name" value='Caio'><br>
 
                 <label for="Insert_App_Origin_URL"> Origin URL (download)* </label><br>
-                <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/TestAppDownload.zip'><br>
+                <input type="text" name="Insert_App_Origin_URL" id="Insert_App_Origin_URL" value='http://127.0.0.1:3000/getZipApp/prime_number.zip'><br>
 
                 <label for="Insert_App_Description"> Description </label><br>
                 <input type="text" name="Insert_App_Description" id="Insert_App_Description" value='This is just a test program installed locally in my machine.'><br>
@@ -130,10 +130,10 @@
                 <h2>Execute app</h2>
 
                 <label for="Execute_App_Name"> App name* </label><br>
-                <input type="text" name="Execute_App_Name" id="Execute_App_Name" value='Test_Web_App_Auth'><br>
+                <input type="text" name="Execute_App_Name" id="Execute_App_Name" value='Prime_number'><br>
 
                 <label for="Execute_App_Flags"> Flags </label><br>
-                <input type="text" name="Execute_App_Flags" id="Execute_App_Flags" value=''><br>
+                <input type="text" name="Execute_App_Flags" id="Execute_App_Flags" value='10'><br>
 
                 <br>
 
@@ -142,7 +142,7 @@
                 <h2>Delete Apps</h2>
 
                 <label for="Delete_App"> App name </label><br>
-                <input type="text" name="Delete_App" id="Delete_App" value='Test_app_2'><br>
+                <input type="text" name="Delete_App" id="Delete_App" value='Prime_number'><br>
 
                 <br>
 

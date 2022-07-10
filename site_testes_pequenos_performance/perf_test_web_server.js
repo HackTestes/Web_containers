@@ -68,11 +68,11 @@ let test_list =
     Program_args_obj('return_0', '""', startup_executios),
     Program_args_obj('bubble_sort', '"10000"', normal_tests_executions),
     Program_args_obj('linear_search', '"10000000"', normal_tests_executions),
-    Program_args_obj('cpu_single_thread_no_op_loop', '"1000000000"', normal_tests_executions),
+    Program_args_obj('single_thread_no_op_loop', '"1000000000"', normal_tests_executions),
     Program_args_obj('prime_number', '"919393"', normal_tests_executions),
     Program_args_obj('prime_number', '"2147483647"', normal_tests_executions),
     Program_args_obj('matrix_addition_single_multi', '"10000", "10", "1", "multi"', normal_tests_executions),
-    Program_args_obj('cpu_multi_thread_no_op_loop', '"1000000000", "6"', normal_tests_executions),
+    Program_args_obj('multi_thread_no_op_loop', '"1000000000", "6"', normal_tests_executions),
     Program_args_obj('prime_number_multi', '"2147483647", "6"', normal_tests_executions),
     Program_args_obj('fibonnaci_multi', '"999999999", "6"', normal_tests_executions),
     Program_args_obj('TEST_END', '', 0)

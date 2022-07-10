@@ -33,7 +33,7 @@ HideAllSectionsExcept("#home");
 
 document.querySelector("#nav_home").onclick = () => {HideAllSectionsExcept("#home")}
 document.querySelector("#nav_search").onclick = () => {HideAllSectionsExcept("#search")}
-document.querySelector("#nav_security").onclick = () => {HideAllSectionsExcept("#security")}
+//document.querySelector("#nav_security").onclick = () => {HideAllSectionsExcept("#security")}
 document.querySelector("#nav_dev").onclick = () => {HideAllSectionsExcept("#dev")}
 
 // -------------------------------------------------------------------------------------------------------------------------- //
@@ -111,209 +111,209 @@ document.querySelector("#Search_App").onkeyup = (key_press) =>
 // -------------------------------------------------------------------------------------------------------------------------- //
 // Security section
 
-let last_response = '';
+// let last_response = '';
 
-document.querySelector('#Security_Default_Browser').onkeyup = (event) =>
-{
-    console.log(event);
+// document.querySelector('#Security_Default_Browser').onkeyup = (event) =>
+// {
+//     console.log(event);
 
-    if(event.code == 'Enter')
-    {
-        let json_data = 
-        {
-            "settings": [["browser_and_args", document.querySelector('#Security_Default_Browser').value.split(' ')]],
+//     if(event.code == 'Enter')
+//     {
+//         let json_data = 
+//         {
+//             "settings": [["browser_and_args", document.querySelector('#Security_Default_Browser').value.split(' ')]],
 
-            "admin":
-            {
-                "token": window.location.href.split('/')[4],
-            }
-        }
+//             "admin":
+//             {
+//                 "token": window.location.href.split('/')[4],
+//             }
+//         }
 
-        $.ajax({
-            type: "post",
-            url: `http://127.0.0.1:3000/Admin/PersistentSettings`,
-            data: JSON.stringify( json_data ),
-            contentType: 'application/json',
-            dataType: 'json',
-            success: (data) => { console.log(data) }
-        });
-    }
-}
+//         $.ajax({
+//             type: "post",
+//             url: `http://127.0.0.1:3000/Admin/PersistentSettings`,
+//             data: JSON.stringify( json_data ),
+//             contentType: 'application/json',
+//             dataType: 'json',
+//             success: (data) => { console.log(data) }
+//         });
+//     }
+// }
 
-function SecurityAddEventListener(btn_class, security_operation)
-{
-    for( btn of document.querySelectorAll(btn_class) )
-    {
-        btn.addEventListener( 'click', (event) =>
-        {
+// function SecurityAddEventListener(btn_class, security_operation)
+// {
+//     for( btn of document.querySelectorAll(btn_class) )
+//     {
+//         btn.addEventListener( 'click', (event) =>
+//         {
 
-            let checkbox_values = [];
-            let app_name = event.target.id.split('-')[1];
+//             let checkbox_values = [];
+//             let app_name = event.target.id.split('-')[1];
 
-            for(node of document.querySelectorAll(`.Permission-${app_name}:checked`))
-            {
-                checkbox_values.push(node.value);
-            }
+//             for(node of document.querySelectorAll(`.Permission-${app_name}:checked`))
+//             {
+//                 checkbox_values.push(node.value);
+//             }
 
-            let json_data = 
-            {
-                "app":
-                {
-                    "name": app_name,
-                    "permissions": checkbox_values
-                },
+//             let json_data = 
+//             {
+//                 "app":
+//                 {
+//                     "name": app_name,
+//                     "permissions": checkbox_values
+//                 },
 
-                "admin":
-                {
-                    "token": window.location.href.split('/')[4],
-                    "security_operation": security_operation
-                }
-            }
+//                 "admin":
+//                 {
+//                     "token": window.location.href.split('/')[4],
+//                     "security_operation": security_operation
+//                 }
+//             }
 
-            $.ajax({
-                type: "post",
-                url: `http://127.0.0.1:3000/Admin/SetAppPermissions`,
-                data: JSON.stringify( json_data ),
-                contentType: 'application/json',
-                dataType: 'json',
-                success: (data) => { console.log(data) }
-            });
-        })
-    }
-}
+//             $.ajax({
+//                 type: "post",
+//                 url: `http://127.0.0.1:3000/Admin/SetAppPermissions`,
+//                 data: JSON.stringify( json_data ),
+//                 contentType: 'application/json',
+//                 dataType: 'json',
+//                 success: (data) => { console.log(data) }
+//             });
+//         })
+//     }
+// }
 
-function SecurityWriteOnChange(json, html_id)
-{
-    let stringified_json = JSON.stringify(json);
+// function SecurityWriteOnChange(json, html_id)
+// {
+//     let stringified_json = JSON.stringify(json);
 
-    let html_output_requests = '';
-    let html_output_permissions = '';
+//     let html_output_requests = '';
+//     let html_output_permissions = '';
 
-    for(current_permission of json.Current_Permissions)
-    {
-        let app_name = current_permission[0];
-        let permissions_string = current_permission[1].toString().replaceAll(',', ', ');
+//     for(current_permission of json.Current_Permissions)
+//     {
+//         let app_name = current_permission[0];
+//         let permissions_string = current_permission[1].toString().replaceAll(',', ', ');
 
-        permissions_string == ''? permissions_string = 'none': permissions_string;
+//         permissions_string == ''? permissions_string = 'none': permissions_string;
 
-        html_output_permissions += `<div id=Security_Current_Permission-${app_name} >\n` +
-                                `<ul><li> <h3 class="Security_Current_Permission" >${app_name}</h3> </li></ul> \n ` +
-                                `<p>Current permissions : ${permissions_string}</p> \n` +
-                                `<button id="Security_Reset_Current-${app_name}" class="Security_Reset_Current" >RESET</button>` +
-                                `</div> <hr/>\n\n`;
-    }
+//         html_output_permissions += `<div id=Security_Current_Permission-${app_name} >\n` +
+//                                 `<ul><li> <h3 class="Security_Current_Permission" >${app_name}</h3> </li></ul> \n ` +
+//                                 `<p>Current permissions : ${permissions_string}</p> \n` +
+//                                 `<button id="Security_Reset_Current-${app_name}" class="Security_Reset_Current" >RESET</button>` +
+//                                 `</div> <hr/>\n\n`;
+//     }
 
-    for(request of json.Permissions_requests)
-    {
-        let app_name = request[0];
-        let permissions_string = request[1].toString().replaceAll(',', ', ');
+//     for(request of json.Permissions_requests)
+//     {
+//         let app_name = request[0];
+//         let permissions_string = request[1].toString().replaceAll(',', ', ');
 
-        permissions_string == ''? permissions_string = 'none': permissions_string;
+//         permissions_string == ''? permissions_string = 'none': permissions_string;
 
-        html_output_requests += `<div id=Security_Request_${app_name} >\n` +
-                                `<ul><li> <h3>${app_name}</h3> </li></ul>\n ` +
-                                `<p>Requested permissions : ${permissions_string}</p> \n` +
-                                `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Execute-${app_name}' name="Execute-${app_name}" value="execute">` +
-                                `<label class="Permission_Label" for = "Execute-${app_name}"> Execute </label> </br>\n` +
+//         html_output_requests += `<div id=Security_Request_${app_name} >\n` +
+//                                 `<ul><li> <h3>${app_name}</h3> </li></ul>\n ` +
+//                                 `<p>Requested permissions : ${permissions_string}</p> \n` +
+//                                 `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Execute-${app_name}' name="Execute-${app_name}" value="execute">` +
+//                                 `<label class="Permission_Label" for = "Execute-${app_name}"> Execute </label> </br>\n` +
 
-                                `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Register-${app_name}' name="Register-${app_name}" value="register">` +
-                                `<label class="Permission_Label" for = "Register-${app_name}"> Register </label> </br>\n` +
+//                                 `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Register-${app_name}' name="Register-${app_name}" value="register">` +
+//                                 `<label class="Permission_Label" for = "Register-${app_name}"> Register </label> </br>\n` +
 
-                                `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Update-${app_name}' name="Update-${app_name}" value="update">` +
-                                `<label class="Permission_Label" for="Update-${app_name}"> Update </label> </br>\n` +
+//                                 `<input type = "checkbox" class="Permisson Permission-${app_name}" id='Update-${app_name}' name="Update-${app_name}" value="update">` +
+//                                 `<label class="Permission_Label" for="Update-${app_name}"> Update </label> </br>\n` +
 
-                                `<button id="Security_Allow-${app_name}" class="Security_Allow" >ALLOW</button>` +
-                                `<button id="Security_Deny-${app_name}" class="Security_Deny" >DENY</button>` +
-                                `</div> <hr/>\n\n`;
-    }
+//                                 `<button id="Security_Allow-${app_name}" class="Security_Allow" >ALLOW</button>` +
+//                                 `<button id="Security_Deny-${app_name}" class="Security_Deny" >DENY</button>` +
+//                                 `</div> <hr/>\n\n`;
+//     }
 
-    if(last_response != stringified_json)
-    {
-        last_response = stringified_json;
-        document.querySelector(html_id[0]).innerHTML = html_output_requests;
-        document.querySelector(html_id[1]).innerHTML = html_output_permissions;
+//     if(last_response != stringified_json)
+//     {
+//         last_response = stringified_json;
+//         document.querySelector(html_id[0]).innerHTML = html_output_requests;
+//         document.querySelector(html_id[1]).innerHTML = html_output_permissions;
 
-        SecurityAddEventListener('.Security_Allow', "permissions_add");
-        SecurityAddEventListener('.Security_Deny', "deny_request");
+//         SecurityAddEventListener('.Security_Allow', "permissions_add");
+//         SecurityAddEventListener('.Security_Deny', "deny_request");
 
-        for( btn of document.querySelectorAll('.Security_Reset_Current') )
-        {
-            btn.addEventListener( 'click', (event) =>
-            {
-                let app_name = event.target.id.split('-')[1];
+//         for( btn of document.querySelectorAll('.Security_Reset_Current') )
+//         {
+//             btn.addEventListener( 'click', (event) =>
+//             {
+//                 let app_name = event.target.id.split('-')[1];
 
-                let json_data = 
-                {
-                    "app":
-                    {
-                        "name": app_name
-                    },
+//                 let json_data = 
+//                 {
+//                     "app":
+//                     {
+//                         "name": app_name
+//                     },
 
-                    "admin":
-                    {
-                        "token": window.location.href.split('/')[4],
-                        "security_operation": 'permissions_revoke_all'
-                    }
-                }
+//                     "admin":
+//                     {
+//                         "token": window.location.href.split('/')[4],
+//                         "security_operation": 'permissions_revoke_all'
+//                     }
+//                 }
     
-                $.ajax({
-                    type: "post",
-                    url: `http://127.0.0.1:3000/Admin/SetAppPermissions`,
-                    data: JSON.stringify( json_data ),
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    success: (data) => { console.log(data) }
-                });
-            })
-        }
-    }
-}
+//                 $.ajax({
+//                     type: "post",
+//                     url: `http://127.0.0.1:3000/Admin/SetAppPermissions`,
+//                     data: JSON.stringify( json_data ),
+//                     contentType: 'application/json',
+//                     dataType: 'json',
+//                     success: (data) => { console.log(data) }
+//                 });
+//             })
+//         }
+//     }
+// }
 
-function ReadSecurityPermissions()
-{
-    let json_data = 
-    {
-        "admin":
-        {
-            "token": window.location.href.split('/')[4]
-        }
-    }
+// function ReadSecurityPermissions()
+// {
+//     let json_data = 
+//     {
+//         "admin":
+//         {
+//             "token": window.location.href.split('/')[4]
+//         }
+//     }
 
-    $.ajax({
-        type: "post",
-        url: `http://127.0.0.1:3000/Admin/RequestAppPermissions`,
-        data: JSON.stringify( json_data ),
-        contentType: 'application/json',
-        dataType: 'json',
-        success: (data) => { SecurityWriteOnChange(data, ['#Security_Requests', '#Current_Security_Permissions']) }
-    });
-}
+//     $.ajax({
+//         type: "post",
+//         url: `http://127.0.0.1:3000/Admin/RequestAppPermissions`,
+//         data: JSON.stringify( json_data ),
+//         contentType: 'application/json',
+//         dataType: 'json',
+//         success: (data) => { SecurityWriteOnChange(data, ['#Security_Requests', '#Current_Security_Permissions']) }
+//     });
+// }
 
-function SetPersistentSecuritySettings(operation)
-{
-    let json_data = 
-    {
-        "admin":
-        {
-            "token": window.location.href.split('/')[4],
-            "operation": operation
-        }
-    }
+// function SetPersistentSecuritySettings(operation)
+// {
+//     let json_data = 
+//     {
+//         "admin":
+//         {
+//             "token": window.location.href.split('/')[4],
+//             "operation": operation
+//         }
+//     }
 
-    $.ajax({
-        type: "post",
-        url: `http://127.0.0.1:3000/Admin/PermissionPersistentSettings`,
-        data: JSON.stringify( json_data ),
-        contentType: 'application/json',
-        dataType: 'json',
-        success: (data) => { console.log(data) }
-    });
-}
+//     $.ajax({
+//         type: "post",
+//         url: `http://127.0.0.1:3000/Admin/PermissionPersistentSettings`,
+//         data: JSON.stringify( json_data ),
+//         contentType: 'application/json',
+//         dataType: 'json',
+//         success: (data) => { console.log(data) }
+//     });
+// }
 
-document.querySelector('#Security_Reset_And_SaveBtn').onclick = () => { SetPersistentSecuritySettings('reset_permissions') }
-document.querySelector('#Security_Save_Current_PermissionsBtn').onclick = () => { SetPersistentSecuritySettings('save_current_permissions') }
+// document.querySelector('#Security_Reset_And_SaveBtn').onclick = () => { SetPersistentSecuritySettings('reset_permissions') }
+// document.querySelector('#Security_Save_Current_PermissionsBtn').onclick = () => { SetPersistentSecuritySettings('save_current_permissions') }
 
-setInterval( ReadSecurityPermissions, 1000)
+// setInterval( ReadSecurityPermissions, 1000)
 
 // -------------------------------------------------------------------------------------------------------------------------- //
 // Dev section
@@ -346,35 +346,35 @@ document.querySelector("#Dev_SearchBtn").onclick = () =>
     });
 }
 
-// Requests permissions
-document.querySelector("#RequestPermissionAppBtn").onclick = () =>
-{
+// // Requests permissions
+// document.querySelector("#RequestPermissionAppBtn").onclick = () =>
+// {
 
-    let checkbox_values = [];
+//     let checkbox_values = [];
 
-    for(node of document.querySelectorAll('.Dev_Permission:checked'))
-    {
-        checkbox_values.push(node.value);
-    }
+//     for(node of document.querySelectorAll('.Dev_Permission:checked'))
+//     {
+//         checkbox_values.push(node.value);
+//     }
 
-    let json_data = 
-    {
-        "app":
-        {
-            "name": document.querySelector("#Security_Request_App_Name").value,
-            "permissions": checkbox_values
-        }
-    }
+//     let json_data = 
+//     {
+//         "app":
+//         {
+//             "name": document.querySelector("#Security_Request_App_Name").value,
+//             "permissions": checkbox_values
+//         }
+//     }
 
-    $.ajax({
-        type: "post",
-        url: `http://127.0.0.1:3000/RequestAppPermissions`,
-        data: JSON.stringify( json_data ),
-        contentType: 'application/json',
-        dataType: 'json',
-        success: (data) => { WriteMessage(data) }
-    });
-}
+//     $.ajax({
+//         type: "post",
+//         url: `http://127.0.0.1:3000/RequestAppPermissions`,
+//         data: JSON.stringify( json_data ),
+//         contentType: 'application/json',
+//         dataType: 'json',
+//         success: (data) => { WriteMessage(data) }
+//     });
+// }
 
 // Registra uma aplicativo e seu desenvolvedor
 document.querySelector("#RegisterAppBtn").onclick = () =>
