@@ -60,21 +60,20 @@ function Result_To_Tsv(results_array_obj, sep)
 let results = [];
 
 let startup_executios = 200;
-let normal_tests_executions = 20;
+let normal_tests_executions = 10;
 
 let current_test = 0;
 let test_list = 
 [
     Program_args_obj('return_0', '""', startup_executios),
-    Program_args_obj('bubble_sort', '"10000"', normal_tests_executions),
-    Program_args_obj('linear_search', '"10000000"', normal_tests_executions),
-    Program_args_obj('single_thread_no_op_loop', '"1000000000"', normal_tests_executions),
-    Program_args_obj('prime_number', '"919393"', normal_tests_executions),
-    Program_args_obj('prime_number', '"2147483647"', normal_tests_executions),
-    Program_args_obj('matrix_addition_single_multi', '"10000", "10", "1", "multi"', normal_tests_executions),
-    Program_args_obj('multi_thread_no_op_loop', '"1000000000", "6"', normal_tests_executions),
-    Program_args_obj('prime_number_multi', '"2147483647", "6"', normal_tests_executions),
-    Program_args_obj('fibonnaci_multi', '"999999999", "6"', normal_tests_executions),
+    Program_args_obj('linear_search', '"199999999"', normal_tests_executions),
+    Program_args_obj('bubble_sort', '"99999"', normal_tests_executions),
+    Program_args_obj('prime_number', '"6620830889"', normal_tests_executions),
+    Program_args_obj('prime_number_multi', '"6620830889", "6"', normal_tests_executions),
+    Program_args_obj('matrix_addition_multi', '"199999999", "6", "1", "multi"', normal_tests_executions),
+    Program_args_obj('fibonnaci_multi', '"10999999999", "6"', normal_tests_executions),
+    Program_args_obj('single_thread_no_op_loop', '"10999999999"', normal_tests_executions),
+    Program_args_obj('multi_thread_no_op_loop', '"10999999999", "6"', normal_tests_executions),
     Program_args_obj('TEST_END', '', 0)
 ]
 

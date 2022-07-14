@@ -45,9 +45,9 @@ def startup_Graph(timings_means, program_alias, experiment_types, legend_names, 
         elif(len(str(yval)) == 2):
             plt.text(bar.get_x() + bar.get_width()/8, yval + 0.5, yval)
         elif(len(str(yval)) == 3):
-            plt.text(bar.get_x() - bar.get_width()/6, yval + 0.5, yval)
+            plt.text(bar.get_x() - bar.get_width()*0, yval + 0.5, yval)
         else:
-            plt.text(bar.get_x() - bar.get_width()/3, yval + 0.5, yval)
+            plt.text(bar.get_x() - bar.get_width()/6, yval + 0.5, yval)
 
     plt.savefig(f'{graphs_folder}{figure_name}', format='pdf', orientation='landscape')
     plt.close()
@@ -189,7 +189,7 @@ total_data['Median_miliseconds'] = total_data['Miliseconds_organized'].apply(lam
 total_data['Std_miliseconds'] = total_data['Miliseconds_organized'].apply(lambda x: numpy.std(x, ddof=1))
 total_data['Miliseconds_max'] = numpy.vectorize(lambda x: numpy.max(x))(total_data['Miliseconds'])
 total_data['Miliseconds_min'] = numpy.vectorize(lambda x: numpy.min(x))(total_data['Miliseconds'])
-total_data['Miliseconds_scale'] = total_data['Miliseconds'].apply(normalize_Array)
+#total_data['Miliseconds_scale'] = total_data['Miliseconds'].apply(normalize_Array)
 
 
 
@@ -201,7 +201,7 @@ total_data['Median_microseconds'] = total_data['Microseconds_organized'].apply(l
 total_data['Std_microseconds'] = total_data['Microseconds_organized'].apply(lambda x: numpy.std(x, ddof=1))
 total_data['Microseconds_max'] = numpy.vectorize(lambda x: numpy.max(x))(total_data['Microseconds'])
 total_data['Microseconds_min'] = numpy.vectorize(lambda x: numpy.min(x))(total_data['Microseconds'])
-total_data['Microseconds_scale'] = total_data['Microseconds'].apply(normalize_Array)
+#total_data['Microseconds_scale'] = total_data['Microseconds'].apply(normalize_Array)
 
 
 # Show the amount of runs
@@ -217,9 +217,9 @@ total_data['Index'] = total_data.index.values.tolist()
 # Necessary for pandasql to work
 #data_without_timings = total_data.drop(columns=['Miliseconds', 'Microseconds'])
 
-print(total_data[['Microseconds', 'Microseconds_scale']])
+print(total_data)
 
-total_data.to_csv('Results_python.csv', index=False)
+total_data.drop(columns=['Miliseconds', 'Miliseconds_organized', 'Microseconds', 'Microseconds_organized']).to_csv('Results_python.csv', index=False)
 
 
 # ---------------------------------------------------------------------------------------------------- #
@@ -255,9 +255,9 @@ native = total_data.loc[total_data['Type'] == 'native'].sort_values(by=['Test_pr
 native_no_return_0 = native.loc[native['Test_program'] != 'return_0']
 
 # Startup
-startup_tests = total_data.loc[total_data['Test_program'].str.contains('return_0') & ~total_data['Alias'].str.contains('podman')].sort_values(by=['Mean_microseconds'], ignore_index=True).replace({numpy.nan: None})
+startup_tests = total_data.loc[total_data['Test_program'].str.contains('return_0') & ~total_data['Alias'].str.contains('podman') & ~total_data['Type'].str.contains('web_wasm')].sort_values(by=['Mean_microseconds'], ignore_index=True).replace({numpy.nan: None})
 
-startup_Graph(startup_tests['Mean_microseconds'], startup_tests['Alias'], startup_tests['Type'], ['Web wasm', 'Nativo', 'Contêiner', 'LLC'], 'Startup.pdf')
+startup_Graph(startup_tests['Mean_microseconds'], startup_tests['Alias'], startup_tests['Type'], ['Nativo', 'Contêiner', 'LLC'], 'Startup.pdf')
 
 # Bar plot
 # Wasm vs
@@ -274,11 +274,11 @@ relative_Perf_Graph([chromium_no_return_0['Mean_microseconds']/LLC_no_return_0['
 relative_Perf_Graph([firefox_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs Firefox(WASM)', 1, 'WebAssembly', 'LLC_Firefox_02.pdf')
 
 # Boxplot
-boxplt_Template([LLC['Microseconds_scale'], LLC_pivot_root['Microseconds_scale']], ['LLC', 'LLC_pivot_root'], LLC['Test_program'], 'Tempo de execução(us)', 'LLC')
-boxplt_Template([chrome['Microseconds_scale'], chromium['Microseconds_scale'], firefox['Microseconds_scale']], ['chrome', 'chromium', 'firefox'], chrome['Test_program'], 'Tempo de execução(us)', 'WASM')
+#boxplt_Template([LLC['Microseconds_scale'], LLC_pivot_root['Microseconds_scale']], ['LLC', 'LLC_pivot_root'], LLC['Test_program'], 'Tempo de execução(us)', 'LLC')
+#boxplt_Template([chrome['Microseconds_scale'], chromium['Microseconds_scale'], firefox['Microseconds_scale']], ['chrome', 'chromium', 'firefox'], chrome['Test_program'], 'Tempo de execução(us)', 'WASM')
 
 # Line plot
-line_Chart_Timings([chrome['Microseconds_scale'], chromium['Microseconds_scale'], firefox['Microseconds_scale']], ['chrome', 'chromium', 'firefox'], chrome['Test_program'], '\n(todos os tempos de execução)', ['crimson', 'royalblue', 'gold'], 'Número de execuções', 'Tempo de execução(us)', 'WASM')
+#line_Chart_Timings([chrome['Microseconds_scale'], chromium['Microseconds_scale'], firefox['Microseconds_scale']], ['chrome', 'chromium', 'firefox'], chrome['Test_program'], '\n(todos os tempos de execução)', ['crimson', 'royalblue', 'gold'], 'Número de execuções', 'Tempo de execução(us)', 'WASM')
 #line_Chart_Timings([LLC['Microseconds'], LLC_pivot_root['Microseconds'], LLC_seccomp['Microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], LLC['Test_program'], '\n(todos os tempos de execução)', ['crimson', 'royalblue', 'gold'], 'Número de execuções', 'Tempo de execução(us)', 'LLC')
 #line_Chart_Timings([native['Microseconds']], ['Nativo'], native['Test_program'], '\n(todos os tempos de execução)', ['royalblue'], 'Número de execuções', 'Tempo de execução(us)', 'Nativo')
 #

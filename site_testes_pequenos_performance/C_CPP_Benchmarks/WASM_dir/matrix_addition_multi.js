@@ -1310,7 +1310,7 @@ function createExportWrapper(name, fixedasm) {
 
 var wasmBinaryFile;
 
-wasmBinaryFile = "prime_number_multi.wasm";
+wasmBinaryFile = "matrix_addition_multi.wasm";
 
 if (!isDataURI(wasmBinaryFile)) {
  wasmBinaryFile = locateFile(wasmBinaryFile);
@@ -1676,7 +1676,7 @@ var PThread = {
   });
  },
  allocateUnusedWorker: function() {
-  var pthreadMainJs = locateFile("prime_number_multi.worker.js");
+  var pthreadMainJs = locateFile("matrix_addition_multi.worker.js");
   PThread.unusedWorkers.push(new Worker(pthreadMainJs));
  },
  getNewWorker: function() {
@@ -5522,6 +5522,10 @@ var ___wasm_call_ctors = Module["___wasm_call_ctors"] = createExportWrapper("__w
 
 var _main = Module["_main"] = createExportWrapper("main");
 
+var _malloc = Module["_malloc"] = createExportWrapper("malloc");
+
+var _free = Module["_free"] = createExportWrapper("free");
+
 var _emscripten_tls_init = Module["_emscripten_tls_init"] = createExportWrapper("emscripten_tls_init");
 
 var _emscripten_builtin_memalign = Module["_emscripten_builtin_memalign"] = createExportWrapper("emscripten_builtin_memalign");
@@ -5554,10 +5558,6 @@ var __emscripten_thread_exit = Module["__emscripten_thread_exit"] = createExport
 
 var _pthread_self = Module["_pthread_self"] = createExportWrapper("pthread_self");
 
-var _free = Module["_free"] = createExportWrapper("free");
-
-var _malloc = Module["_malloc"] = createExportWrapper("malloc");
-
 var _emscripten_stack_get_base = Module["_emscripten_stack_get_base"] = function() {
  return (_emscripten_stack_get_base = Module["_emscripten_stack_get_base"] = Module["asm"]["emscripten_stack_get_base"]).apply(null, arguments);
 };
@@ -5584,7 +5584,7 @@ var stackRestore = Module["stackRestore"] = createExportWrapper("stackRestore");
 
 var stackAlloc = Module["stackAlloc"] = createExportWrapper("stackAlloc");
 
-var dynCall_ij = Module["dynCall_ij"] = createExportWrapper("dynCall_ij");
+var dynCall_vijjjj = Module["dynCall_vijjjj"] = createExportWrapper("dynCall_vijjjj");
 
 var dynCall_jiji = Module["dynCall_jiji"] = createExportWrapper("dynCall_jiji");
 
@@ -5596,7 +5596,7 @@ var dynCall_iiiiijj = Module["dynCall_iiiiijj"] = createExportWrapper("dynCall_i
 
 var dynCall_iiiiiijj = Module["dynCall_iiiiiijj"] = createExportWrapper("dynCall_iiiiiijj");
 
-var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 15520;
+var __emscripten_allow_main_runtime_queued_calls = Module["__emscripten_allow_main_runtime_queued_calls"] = 15568;
 
 if (!Object.getOwnPropertyDescriptor(Module, "intArrayFromString")) Module["intArrayFromString"] = (() => abort("'intArrayFromString' was not exported. add it to EXPORTED_RUNTIME_METHODS (see the FAQ)"));
 
