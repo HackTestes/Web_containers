@@ -49,7 +49,8 @@ def startup_Graph(timings_means, program_alias, experiment_types, legend_names, 
         else:
             plt.text(bar.get_x() - bar.get_width()/6, yval + 0.5, yval)
 
-    plt.savefig(f'{graphs_folder}{figure_name}', format='pdf', orientation='landscape')
+    plt.savefig(f'{graphs_folder}{figure_name}.pdf', format='pdf', orientation='landscape')
+    plt.savefig(f'{graphs_folder}{figure_name}.svg', format='svg', orientation='landscape')
     plt.close()
 
 
@@ -86,7 +87,8 @@ def relative_Perf_Graph(array_of_datasets, datasets_labels, dataset_colors, data
     plt.grid(color='gray', linestyle=':', linewidth=2, axis='y')
     plt.legend(fontsize=45)
 
-    plt.savefig(f'{graphs_folder}{figure_name}', format='pdf', orientation='landscape')
+    plt.savefig(f'{graphs_folder}{figure_name}.pdf', format='pdf', orientation='landscape')
+    plt.savefig(f'{graphs_folder}{figure_name}.svg', format='svg', orientation='landscape')
     plt.close()
 
 
@@ -114,6 +116,7 @@ def boxplt_Template(array_of_timings, timings_labels, experiment_labels, ylabel,
         plt.grid(color='gray', linestyle=':', linewidth=2, axis='y')
 
         plt.savefig(f'{graphs_folder}Boxplot_{figure_name}_{experiment}.pdf', format='pdf', orientation='landscape')
+        plt.savefig(f'{graphs_folder}Boxplot_{figure_name}_{experiment}.svg', format='svg', orientation='landscape')
         plt.close()
 
 
@@ -135,6 +138,7 @@ def line_Chart_Timings(array_of_timings, timings_labels, experiment_labels, subt
         plt.legend(fontsize=45)
 
         plt.savefig(f'{graphs_folder}Lineplot_{figure_name}_{experiment}.pdf', format='pdf', orientation='landscape')
+        plt.savefig(f'{graphs_folder}Lineplot_{figure_name}_{experiment}.svg', format='svg', orientation='landscape')
         plt.close()
 
 
@@ -257,21 +261,24 @@ native_no_return_0 = native.loc[native['Test_program'] != 'return_0']
 # Startup
 startup_tests = total_data.loc[total_data['Test_program'].str.contains('return_0') & ~total_data['Alias'].str.contains('podman') & ~total_data['Type'].str.contains('web_wasm')].sort_values(by=['Mean_microseconds'], ignore_index=True).replace({numpy.nan: None})
 
-startup_Graph(startup_tests['Mean_microseconds'], startup_tests['Alias'], startup_tests['Type'], ['Nativo', 'Contêiner', 'LLC'], 'Startup.pdf')
+startup_Graph(startup_tests['Mean_microseconds'], startup_tests['Alias'], startup_tests['Type'], ['Nativo', 'Contêiner', 'LLC'], 'Startup')
 
 # Bar plot
 # Wasm vs
-relative_Perf_Graph([native['Mean_microseconds']/chrome['Mean_microseconds'], native['Mean_microseconds']/chromium['Mean_microseconds'], native['Mean_microseconds']/firefox['Mean_microseconds']], ['chrome', 'chromium', 'firefox'], ['crimson', 'royalblue', 'gold'], chrome['Test_program'], 'Speedup', 'WASM vs Nativo', 1, 'Nativo', 'WASM_Native.pdf')
-relative_Perf_Graph([native_no_return_0['Mean_microseconds']/chrome_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/chromium_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/firefox_no_return_0['Mean_microseconds']], ['chrome', 'chromium', 'firefox'], ['crimson', 'royalblue', 'gold'], chrome_no_return_0['Test_program'], 'Speedup', 'WASM vs Nativo', 1, 'Nativo', 'WASM_Native_02.pdf')
+relative_Perf_Graph([native['Mean_microseconds']/chrome['Mean_microseconds'], native['Mean_microseconds']/chromium['Mean_microseconds'], native['Mean_microseconds']/firefox['Mean_microseconds']], ['chrome', 'chromium', 'firefox'], ['crimson', 'royalblue', 'gold'], chrome['Test_program'], 'Speedup', 'WASM vs Nativo', 1, 'Nativo', 'WASM_Native')
+relative_Perf_Graph([native_no_return_0['Mean_microseconds']/chrome_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/chromium_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/firefox_no_return_0['Mean_microseconds']], ['chrome', 'chromium', 'firefox'], ['crimson', 'royalblue', 'gold'], chrome_no_return_0['Test_program'], 'Speedup', 'WASM vs Nativo', 1, 'Nativo', 'WASM_Native_02')
 
 # LLC vs
-relative_Perf_Graph([native['Mean_microseconds']/LLC['Mean_microseconds'], native['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], native['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs Nativo', 1, 'Nativo', 'LLC_Native.pdf')
-relative_Perf_Graph([chrome['Mean_microseconds']/LLC['Mean_microseconds'], chrome['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], chrome['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs Chrome(WASM)', 1, 'WebAssembly', 'LLC_Chrome.pdf')
-relative_Perf_Graph([chrome_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], chrome_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], chrome_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs Chrome(WASM)', 1, 'WebAssembly', 'LLC_Chrome_02.pdf')
+relative_Perf_Graph([native['Mean_microseconds']/LLC['Mean_microseconds'], native['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], native['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs Nativo', 1, 'Nativo', 'LLC_Native')
+relative_Perf_Graph([native_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], native_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs Nativo', 1, 'Nativo', 'LLC_Native_02')
 
-relative_Perf_Graph([chromium['Mean_microseconds']/LLC['Mean_microseconds'], chromium['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], chromium['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs Chromium(WASM)', 1, 'WebAssembly', 'LLC_Chromium.pdf')
-relative_Perf_Graph([chromium_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], chromium_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], chromium_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs Chromium(WASM)', 1, 'WebAssembly', 'LLC_Chromium_02.pdf')
-relative_Perf_Graph([firefox_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs Firefox(WASM)', 1, 'WebAssembly', 'LLC_Firefox_02.pdf')
+relative_Perf_Graph([chrome['Mean_microseconds']/LLC['Mean_microseconds'], chrome['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], chrome['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs WASM(Chrome)', 1, 'WebAssembly', 'LLC_Chrome')
+relative_Perf_Graph([chrome_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], chrome_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], chrome_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs WASM(Chrome)', 1, 'WebAssembly', 'LLC_Chrome_02')
+
+relative_Perf_Graph([chromium['Mean_microseconds']/LLC['Mean_microseconds'], chromium['Mean_microseconds']/LLC_pivot_root['Mean_microseconds'], chromium['Mean_microseconds']/LLC_seccomp['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp['Test_program'], 'Speedup', 'LLC vs WASM(Chromium)', 1, 'WebAssembly', 'LLC_Chromium')
+relative_Perf_Graph([chromium_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], chromium_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], chromium_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs WASM(Chromium)', 1, 'WebAssembly', 'LLC_Chromium_02')
+
+relative_Perf_Graph([firefox_no_return_0['Mean_microseconds']/LLC_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_pivot_root_no_return_0['Mean_microseconds'], firefox_no_return_0['Mean_microseconds']/LLC_seccomp_no_return_0['Mean_microseconds']], ['LLC', 'LLC_pivot_root', 'LLC_seccomp'], ['crimson', 'royalblue', 'gold'], LLC_seccomp_no_return_0['Test_program'], 'Speedup', 'LLC vs WASM(Firefox)', 1, 'WebAssembly', 'LLC_Firefox_02')
 
 # Boxplot
 #boxplt_Template([LLC['Microseconds_scale'], LLC_pivot_root['Microseconds_scale']], ['LLC', 'LLC_pivot_root'], LLC['Test_program'], 'Tempo de execução(us)', 'LLC')
