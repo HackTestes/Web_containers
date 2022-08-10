@@ -1,0 +1,15 @@
+Alias,Test_program,Mean_miliseconds,Mean_microseconds
+unshare,return_0,1,1704
+unshare+setpriv,return_0,1,2066
+setpriv+unshare,return_0,1,2054
+podman,return_0,343,343996
+bwrap,return_0,2,2406
+systemd-run,return_0,4,5275
+systemd-run(seccomp),return_0,5,6336
+return_0.exe,return_0,0,824
+LLC,return_0,1,1824
+LLC(pivot-root),return_0,1,1939
+LLC(seccomp),return_0,1,2174
+chrome,return_0,0,7
+chromium,return_0,0,7
+firefox,return_0,0,9

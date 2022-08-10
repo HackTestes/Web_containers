@@ -1,15 +1,4 @@
 Alias,Test_program,Mean_miliseconds,Mean_microseconds
-unshare,return_0,1,1704
-unshare+setpriv,return_0,1,2066
-setpriv+unshare,return_0,1,2054
-podman,return_0,343,343996
-bwrap,return_0,2,2406
-systemd-run,return_0,4,5275
-systemd-run(seccomp),return_0,5,6336
-return_0.exe,return_0,0,824
-LLC,return_0,1,1824
-LLC(pivot-root),return_0,1,1939
-LLC(seccomp),return_0,1,2174
 linear_search.exe,linear_search,718,718502
 LLC,linear_search,720,720697
 LLC(pivot-root),linear_search,722,722534
@@ -42,7 +31,6 @@ multi_thread_no_op_loop.exe,multi_thread_no_op_loop,5673,5673628
 LLC,multi_thread_no_op_loop,5674,5674977
 LLC(pivot-root),multi_thread_no_op_loop,5674,5675336
 LLC(seccomp),multi_thread_no_op_loop,19129,19130045
-chrome,return_0,0,7
 chrome,linear_search,432,432542
 chrome,bubble_sort,15587,15587890
 chrome,prime_number,12559,12559268
@@ -51,7 +39,6 @@ chrome,matrix_addition_multi,141,141693
 chrome,fibonnaci_multi,20757,20757950
 chrome,single_thread_no_op_loop,6049,6049501
 chrome,multi_thread_no_op_loop,9124,9124384
-chromium,return_0,0,7
 chromium,linear_search,1429,1429368
 chromium,bubble_sort,42143,42143015
 chromium,prime_number,15041,15041295
@@ -60,7 +47,6 @@ chromium,matrix_addition_multi,300,300305
 chromium,fibonnaci_multi,50090,50090129
 chromium,single_thread_no_op_loop,23673,23673423
 chromium,multi_thread_no_op_loop,25665,25665074
-firefox,return_0,0,9
 firefox,linear_search,1714,1714702
 firefox,bubble_sort,49609,49609567
 firefox,prime_number,15665,15665905

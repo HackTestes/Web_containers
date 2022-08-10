@@ -223,7 +223,22 @@ total_data['Index'] = total_data.index.values.tolist()
 
 print(total_data)
 
-total_data.drop(columns=['Miliseconds', 'Miliseconds_organized', 'Microseconds', 'Microseconds_organized']).to_csv('Results_python.csv', index=False)
+display_df = total_data.drop(columns=['Miliseconds', 'Miliseconds_organized', 'Microseconds', 'Microseconds_organized'])
+display_df[['Mean_miliseconds', 'Miliseconds_max', 'Miliseconds_min', 'Mean_microseconds', 'Microseconds_max', 'Microseconds_min', 'Runtime_startup_time_miliseconds']] = display_df[['Mean_miliseconds', 'Miliseconds_max', 'Miliseconds_min', 'Mean_microseconds', 'Microseconds_max', 'Microseconds_min', 'Runtime_startup_time_miliseconds']].astype(int)
+
+startup_display = display_df.loc[display_df['Test_program'] == 'return_0']
+normal_experiments_df = display_df.loc[display_df['Test_program'] != 'return_0']
+native_experiments_df = normal_experiments_df.loc[normal_experiments_df['Type'] == 'native']
+wasm_experiments_df = normal_experiments_df.loc[normal_experiments_df['Type'] == 'web_wasm']
+llc_experiments_df = normal_experiments_df.loc[normal_experiments_df['Type'] == 'custom_container']
+
+
+display_df[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('Results_python.csv', index=False)
+startup_display[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('startup_display.csv', index=False)
+normal_experiments_df[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('normal_experiments_df.csv', index=False)
+native_experiments_df[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('native_experiments_df.csv', index=False)
+wasm_experiments_df[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('wasm_experiments_df.csv', index=False)
+llc_experiments_df[['Alias', 'Test_program', 'Mean_miliseconds', 'Mean_microseconds']].to_csv('llc_experiments_df.csv', index=False)
 
 
 # ---------------------------------------------------------------------------------------------------- #

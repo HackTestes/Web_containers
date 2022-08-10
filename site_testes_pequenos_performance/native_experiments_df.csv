@@ -1,0 +1,9 @@
+Alias,Test_program,Mean_miliseconds,Mean_microseconds
+linear_search.exe,linear_search,718,718502
+bubble_sort.exe,bubble_sort,13581,13582057
+prime_number.exe,prime_number,12556,12556552
+prime_number_multi.exe,prime_number_multi,12579,12579699
+matrix_addition_multi.exe,matrix_addition_multi,172,172831
+fibonnaci_multi.exe,fibonnaci_multi,12949,12949550
+single_thread_no_op_loop.exe,single_thread_no_op_loop,6204,6204425
+multi_thread_no_op_loop.exe,multi_thread_no_op_loop,5673,5673628
