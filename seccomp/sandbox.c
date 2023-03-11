@@ -1107,7 +1107,7 @@ int main(int argc, char *argv[])
 
                 "--fork \n\t fork before calling the program \n\n"
 
-                "--keep-privs \n\t don't drop privs and doesn't enable/lock the secure bits"
+                "--keep-privs \n\t don't drop privs and doesn't enable/lock the secure bits \n\n"
 
                 "--uid <NS_UID> \n\t set user id in the new namespace (maps to current uid outside of the ns) \n\n"
 
